@@ -1,0 +1,1 @@
+particule number (51) must be within [0, nb_particule_max]

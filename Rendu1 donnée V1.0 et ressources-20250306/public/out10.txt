@@ -1,0 +1,1 @@
+faiseur (0) element (0) collides with faiseur (1) element (0)
