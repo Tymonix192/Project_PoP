@@ -9,7 +9,7 @@ enum Mode
     GUIDAGE
 };
 constexpr double r_max(100.);
-constexpr double r_min_faiseur(1.5);
+constexpr double r_min_faiseur(1.5);    
 constexpr double r_max_faiseur(5.);
 constexpr double r_capture(18.);
 constexpr double r_viz(0.9); // seulement pour le dessin
