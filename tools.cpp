@@ -1,6 +1,10 @@
 #include "tools.h"
 #include <cmath>
 
+double distance(S2d point1, S2d point2){
+    return sqrt(pow((point1.x - point2.x), 2) + pow((point1.y - point2.y), 2));
+}
+
 int Point::set_center(S2d coordinates){
     _point = coordinates;
     return 0;
@@ -16,6 +20,14 @@ double Point::distance_org(){
 
 Circle::Circle(S2d center){
     _center = center;
+}
+
+bool Circle::check_intersect(Circle other_circle){
+
+}
+
+bool Circle::check_inside(Circle circle){
+    //TODO 2
 }
 
 double Circle::get_radius(){
@@ -79,3 +91,10 @@ int Vector::set_lenght(double lenght){
 }
 
 
+double Vector::bounce(){
+    double new_angle;
+
+    //TODO 3
+
+    return new_angle;
+}
