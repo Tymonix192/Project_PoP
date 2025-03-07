@@ -6,6 +6,10 @@
 
 struct S2d {double x=0; double y=0;};
 
+#define ORIGIN S2d{0,0}
+
+double distance(S2d point1, S2d point2);
+
 class Point{
     public:
         Point::Point();
@@ -22,8 +26,8 @@ class Circle: public Point{
         Circle::Circle(S2d cent);
         int set_radius(double r);
         double get_radius();
-        bool check_inside();
-        bool check_cross();
+        bool check_inside(Circle circle);
+        bool check_intersect(Circle other_circle);
         int set_center(S2d coordinates);
         S2d get_center();
     private:
@@ -40,6 +44,7 @@ class Vector{
         double get_angle();
         int set_lenght(double lenght); 
         double get_lenght();
+        double bounce();
     private:
         double _angle;
         double _lenght;
