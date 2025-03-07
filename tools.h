@@ -9,6 +9,9 @@ struct S2d {double x=0; double y=0;};
 #define ORIGIN S2d{0,0}
 
 double distance(S2d point1, S2d point2);
+bool circles_intersect(Circle circle_1, Circle circle_);
+Circle* circles_inside(Circle* circle_1, Circle* circle_2);
+
 
 class Point{
     public:
@@ -45,6 +48,12 @@ class Vector{
         int set_lenght(double lenght); 
         double get_lenght();
         double bounce();
+        int add(Vector v);
+        int subctract(Vector v);
+        int multiply(double c);
+        Vector operator*(double constant);
+        Vector operator+(const Vector& vector);
+        Vector operator-(const auto& vector);
     private:
         double _angle;
         double _lenght;

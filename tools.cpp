@@ -23,11 +23,17 @@
     }
 
     bool Circle::check_intersect(Circle other_circle){
-
+        double dist_c = distance(other_circle._center, _center);
+        if(dist_c > (other_circle._radius - _radius) && dist_c<other_circle._radius + _radius)
+            return true;
+        return false;    
     }
 
     bool Circle::check_inside(Circle circle){
-        //TODO 2
+        double dist_c = distance(circle._center, _center);
+        if(dist_c < circle._radius - _radius)
+            return true;
+        return false;  
     }
 
     double Circle::get_radius(){
@@ -100,4 +106,55 @@
         //TODO 3
 
         return new_angle;
+    }
+
+    int Vector::add(Vector vector){
+        _coordinate_end.x += vector._lenght*cos(vector._angle);
+        _coordinate_end.y += vector._lenght*sin(vector._angle);
+        return 0;
+    }
+    int Vector::multiply(double constant){
+        _coordinate_end.x *= constant;
+        _coordinate_end.y *= constant;
+        return 0;
+    }
+    int Vector::subctract(Vector vector){
+        vector = vector*(-1);
+        this->add(vector);
+        return 0;
+    }
+
+    Vector Vector::operator*(double constant){
+        Vector res;
+        res.set_lenght(this->_lenght * constant);
+        res.set_angle(this->_angle);
+        return res;
+    }
+
+    Vector Vector::operator+(const Vector& vector){
+        Vector res;
+        res.set_coordinates(this->_coordinate_start,
+             {this->_coordinate_end.x + vector._lenght*cos(vector._angle),this->_coordinate_end.y + vector._lenght*sin(vector._angle) } );
+            
+        return res;       
+    }
+
+    Vector Vector::operator-(const auto& vector){
+        vector *= -1;
+        return this + vector;
+    }
+
+    Circle* circles_inside(Circle* circle_1, Circle* circle_2){
+        if(circle_1->check_inside(*circle_2))
+            return circle_1;
+        if(circle_2->check_inside(*circle_1))
+            return circle_2;
+        else
+            return NULL;
+    }
+
+    bool circles_intersect(Circle circle_1, Circle circle_2){
+        if(circle_1.check_intersect(circle_2))
+            return true;
+        return false;
     }
