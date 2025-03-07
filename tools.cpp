@@ -101,10 +101,9 @@
 
 
     double Vector::bounce(){
-        double new_angle;
-
-        //TODO 3
-
+        double new_angle, beta;
+        beta = atan(this->_coordinate_end.y/this->_coordinate_end.x);
+        new_angle = M_PI + 2*beta - _angle;
         return new_angle;
     }
 

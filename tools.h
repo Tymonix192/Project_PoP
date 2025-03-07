@@ -10,7 +10,9 @@ struct S2d {double x=0; double y=0;};
 
 double distance(S2d point1, S2d point2);
 bool circles_intersect(Circle circle_1, Circle circle_);
-Circle* circles_inside(Circle* circle_1, Circle* circle_2);
+Circle* circles_inside(Circle* circle_1, Circle* circle_2); 
+// returns a pointer to the inside circle.
+// If the circles arent inside each other, returns NULL
 
 
 class Point{
@@ -18,11 +20,12 @@ class Point{
         Point::Point();
         virtual int set_center(S2d coordinates);
         virtual S2d get_center();
-        double distance_org();
+        double distance_org(); // returns distance from origin
     private:
         S2d _point;
         
 };
+
 
 class Circle: public Point{
     public:
@@ -37,6 +40,7 @@ class Circle: public Point{
         double _radius;
         S2d _center;
 };
+
 
 class Vector{
     public:
