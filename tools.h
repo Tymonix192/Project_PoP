@@ -29,7 +29,7 @@ class Point{
 
 class Circle: public Point{
     public:
-        Circle::Circle(S2d cent);
+        Circle::Circle(S2d cent, double rad);
         int set_radius(double r);
         double get_radius();
         bool check_inside(Circle circle);
@@ -49,18 +49,18 @@ class Vector{
         S2d get_end();
         int set_angle(double angle);
         double get_angle();
-        int set_lenght(double lenght); 
-        double get_lenght();
+        int set_length(double length); 
+        double get_length();
         double bounce();
         int add(Vector v);
-        int subctract(Vector v);
-        int multiply(double c);
+        int subtract(Vector v);
+        int multiply_const(double c);
         Vector operator*(double constant);
         Vector operator+(const Vector& vector);
-        Vector operator-(const auto& vector);
+        Vector operator-(const Vector& vector);
     private:
         double _angle;
-        double _lenght;
+        double _length;
         S2d _coordinate_start;
         S2d _coordinate_end;
 

@@ -18,20 +18,24 @@
         return sqrt(_point.x*_point.x + _point.y*_point.y);
     }
 
-    Circle::Circle(S2d center){
+    Circle::Circle(S2d center, double radius){
+        if(radius>0)
+            _radius = radius;
+        else    
+            _radius = 0;
         _center = center;
     }
 
     bool Circle::check_intersect(Circle other_circle){
         double dist_c = distance(other_circle._center, _center);
-        if(dist_c > (other_circle._radius - _radius) && dist_c<other_circle._radius + _radius)
+        if(dist_c > abs(other_circle._radius - _radius) && dist_c<other_circle._radius + _radius)
             return true;
         return false;    
     }
 
     bool Circle::check_inside(Circle circle){
         double dist_c = distance(circle._center, _center);
-        if(dist_c < circle._radius - _radius)
+        if(dist_c + _radius < circle._radius)
             return true;
         return false;  
     }
@@ -60,9 +64,9 @@
     int Vector::set_coordinates(S2d start_point, S2d end_point){
         _coordinate_start = start_point;
         _coordinate_end = end_point;
-        _lenght = distance(start_point, end_point);
+        _length = distance(start_point, end_point);
         if(start_point.x != end_point.x)
-            _angle = tan((start_point.y-end_point.y)/(start_point.x - end_point.x));
+            _angle = atan2(end_point.y - start_point.y, end_point.x - start_point.x);
         return 0;
     };
 
@@ -79,21 +83,25 @@
     }
 
     int Vector::set_angle(double angle){
-        if(angle<M_PI && angle>-M_PI){
+        if(angle < M_PI && angle > -M_PI){
             _angle = angle;
+            _coordinate_end.x = _coordinate_start.x + _length * cos(_angle);
+            _coordinate_end.y = _coordinate_start.y + _length * sin(_angle);
+            return 0;
         }
+        return -1;
     }
 
-    double Vector::get_lenght(){
-        return _lenght;
+    double Vector::get_length(){
+        return _length;
     }
 
-    int Vector::set_lenght(double lenght){
-        if(lenght > 0){
-            double change = _lenght - lenght;
-            _lenght = lenght;
+    int Vector::set_length(double length){
+        if(length > 0){
+            double change = _length - length;
+            _length = length;
             _coordinate_end.x -=change * sin(_angle);
-            _coordinate_end.x -=change * cos(_angle);
+            _coordinate_end.y -=change * cos(_angle);
             return 0;
         }
         return -1;
@@ -102,22 +110,23 @@
 
     double Vector::bounce(){
         double new_angle, beta;
-        beta = atan(this->_coordinate_end.y/this->_coordinate_end.x);
+        beta = atan2(this->_coordinate_end.y, this->_coordinate_end.x);
         new_angle = M_PI + 2*beta - _angle;
         return new_angle;
     }
 
     int Vector::add(Vector vector){
-        _coordinate_end.x += vector._lenght*cos(vector._angle);
-        _coordinate_end.y += vector._lenght*sin(vector._angle);
+        _coordinate_end.x += vector._length*cos(vector._angle);
+        _coordinate_end.y += vector._length*sin(vector._angle);
         return 0;
     }
-    int Vector::multiply(double constant){
-        _coordinate_end.x *= constant;
-        _coordinate_end.y *= constant;
+    int Vector::multiply_const(double constant){
+        _coordinate_end.x = _coordinate_start.x + (_coordinate_end.x - _coordinate_start.x) * constant;
+        _coordinate_end.y = _coordinate_start.y + (_coordinate_end.y - _coordinate_start.y) * constant;
+        _length *= fabs(constant);
         return 0;
     }
-    int Vector::subctract(Vector vector){
+    int Vector::subtract(Vector vector){
         vector = vector*(-1);
         this->add(vector);
         return 0;
@@ -125,24 +134,32 @@
 
     Vector Vector::operator*(double constant){
         Vector res;
-        res.set_lenght(this->_lenght * constant);
+        res.set_length(this->_length * constant);
         res.set_angle(this->_angle);
+        res._coordinate_end = (S2d){_coordinate_start.x+_length*cos(_angle),_coordinate_start.y+_length*sin(_angle)};
+        res._coordinate_start = this->_coordinate_start; 
         return res;
     }
 
     Vector Vector::operator+(const Vector& vector){
         Vector res;
-        res.set_coordinates(this->_coordinate_start,
-             {this->_coordinate_end.x + vector._lenght*cos(vector._angle),this->_coordinate_end.y + vector._lenght*sin(vector._angle) } );
-            
-        return res;       
+        res.set_coordinates(_coordinate_start,
+            {_coordinate_end.x + vector._length * cos(vector._angle),
+             _coordinate_end.y + vector._length * sin(vector._angle)});
+        return res;      
     }
 
-    Vector Vector::operator-(const auto& vector){
-        vector *= -1;
-        return this + vector;
+    Vector Vector::operator-(const Vector& vector){
+        Vector negated;
+        negated._coordinate_start = vector._coordinate_start;
+        negated._coordinate_end.x = vector._coordinate_start.x - (vector._coordinate_end.x - vector._coordinate_start.x);
+        negated._coordinate_end.y = vector._coordinate_start.y - (vector._coordinate_end.y - vector._coordinate_start.y);
+        negated._length = distance(negated._coordinate_start, negated._coordinate_end);
+        negated._angle = atan2(negated._coordinate_end.y - negated._coordinate_start.y, 
+                           negated._coordinate_end.x - negated._coordinate_start.x);
+        *this = *this + negated;
+        return *this;
     }
-
     Circle* circles_inside(Circle* circle_1, Circle* circle_2){
         if(circle_1->check_inside(*circle_2))
             return circle_1;
