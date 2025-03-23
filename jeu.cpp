@@ -145,7 +145,7 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
     
     // Create maker and use its validation methods
     Faiseur f({x, y}, alpha, displacement, radius, nbe);
-    validation = f.isValid();
+    int validation = f.isValid();
     if (!f.isValid()) { //look at mobile.h
         // The specific error message depends on what failed
         if (validation == -4) {

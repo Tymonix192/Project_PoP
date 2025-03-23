@@ -215,25 +215,25 @@ bool Faiseur::isInArena() const {
     return true;
 }
 
-bool Faiseur::isValid() const {
+int Faiseur::isValid() const {
     // Check if numElements is greater than 0
     if (numElements == 0) {
-        return false;
+        return -3;
     }
     // Check radius bounds
     if (radius < r_min_faiseur || radius > r_max_faiseur) {
-        return false;
+        return -4;
     }
     // Check displacement bounds
     if (displacement < 0 || displacement > d_max) {
-        return false;
+        return -2;
     }
     // Check if all elements are inside arena
     if (!isInArena()) {
-        return false;
+        return -1;
     }
     
-    return true;
+    return 1;
 }
 
 // Collision detection

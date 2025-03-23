@@ -36,6 +36,10 @@ public:
     void incrementCounter();
 
     // Validation
+    // true if > 0
+    // -1 -> out of arena
+    // -2 -> dispacement wrong
+    // -3 -> counter wrong
     int isValid() const; 
 
     // Debug
@@ -50,6 +54,8 @@ private:
     double radius;     
     unsigned int numElements; // Number of elements in the maker
     vector<S2d> elements; // Positions of all elements
+
+    bool isInArena() const;
     
 public:
     // Constructors
@@ -75,8 +81,12 @@ public:
     void calculateElements();
     
     // Validation
-    bool isInArena() const;
-    bool isValid() const;
+    // true if > 0
+    // -1 -> out of arena
+    // -2 -> dispacement wrong
+    // -3 -> counter wrong
+    // -4 -> radius wrong
+    int isValid() const;
     
     // Collision detection
     bool collidesWithArena() const;

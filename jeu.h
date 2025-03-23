@@ -7,7 +7,8 @@
 #include "chaine.h"
 #include "mobile.h"
 #include "constantes.h"
-#include "message.h
+#include "message.h"
+#include "tools.h"
 
 /** 
  * This class is responsible for:
