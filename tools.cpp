@@ -33,9 +33,9 @@
         return false;    
     }
 
-    bool Circle::check_inside(Circle circle){
+    bool Circle::check_inside(Circle circle, float epsil_zero = 0.0){
         double dist_c = distance(circle._center, _center);
-        if(dist_c + _radius < circle._radius)
+        if(dist_c + _radius+epsil_zero < circle._radius)
             return true;
         return false;  
     }
@@ -108,15 +108,13 @@
     }
 
 
-    Vector Vector::bounce(S2d circle_center) {
+    double Vector::bounce(S2d circle_center) {
         S2d to_end = {_coordinate_end.x - circle_center.x, _coordinate_end.y - circle_center.y};
         double beta = atan2(to_end.y, to_end.x);
         double new_angle = M_PI + 2 * beta - _angle;
         if (new_angle > M_PI) new_angle -= 2 * M_PI;
         else if (new_angle <= -M_PI) new_angle += 2 * M_PI;
-        Vector reflected = *this;
-        reflected.set_angle(new_angle);
-        return reflected;
+        return new_angle;
     }
 
     int Vector::add(Vector vector){

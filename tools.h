@@ -52,7 +52,7 @@ class Vector{
         double get_angle();
         int set_length(double length); 
         double get_length();
-        Vector bounce(S2d circle_center = {0,0});
+        double bounce(S2d circle_center = {0,0});
         int add(Vector v);
         int subtract(Vector v);
         int multiply_const(double c);
