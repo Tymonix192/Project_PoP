@@ -1,8 +1,9 @@
+#ifndef TOOLS_H
+#define TOOLS_H
+
 #include <vector>
 #include <iostream>
 
-#ifndef s2d
-#define s2d
 
 struct S2d {double x=0; double y=0;};
 
@@ -51,7 +52,7 @@ class Vector{
         double get_angle();
         int set_length(double length); 
         double get_length();
-        double bounce();
+        Vector bounce(S2d circle_center = {0,0});
         int add(Vector v);
         int subtract(Vector v);
         int multiply_const(double c);
