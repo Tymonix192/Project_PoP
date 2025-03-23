@@ -33,9 +33,9 @@
         return false;    
     }
 
-    bool Circle::check_inside(Circle circle, float epsil_zero = 0.0){
+    bool Circle::check_inside(Circle circle){
         double dist_c = distance(circle._center, _center);
-        if(dist_c + _radius+epsil_zero < circle._radius)
+        if(dist_c + _radius+EPSIL_ZERO < circle._radius)
             return true;
         return false;  
     }
