@@ -58,50 +58,29 @@ void Particule::incrementCounter() {
     counter++;
 }
 
-// File parsing
-bool Particule::readFromLine(const string& line) {
-    istringstream iss(line);
-    double x, y, a, d;
-    unsigned int c;
-    
-    if (!(iss >> x >> y >> a >> d >> c)) {
-        return false;
-    }
-    
-    // Set the attributes
-    position.x = x;
-    position.y = y;
-    setAlpha(a);  // normalize the angle
-    displacement = d;
-    counter = c;
-    
-    // Validate the particle
-    return isValid();
-}
-
 // Validation
 bool Particule::isInArena() const {
     Circle arenaCircle(ORIGIN, r_max);
     return distance(position, ORIGIN) <= r_max;
 }
 
-bool Particule::isValid() const {
+int Particule::isValid() const {
     // Check if the particle is valid
     if (!isInArena()) {
-        return false;
+        return -1;
     }
     
     // Check displacement bounds
     if (displacement < 0 || displacement > d_max) {
-        return false;
+        return -2;
     }
     
     // Check counter bounds
     if (counter >= time_to_split) {
-        return false;
+        return -3;
     }
     
-    return true;
+    return 1;
 }
 
 // Debug
@@ -221,32 +200,6 @@ void Faiseur::calculateElements() {
         elements.push_back(nextPos);
         prevPos = nextPos;
     }
-}
-
-// File parsing
-bool Faiseur::readFromLine(const string& line) {
-    istringstream iss(line);
-    double x, y, a, d, r;
-    unsigned int nbe;
-    
-    // Parse the line
-    if (!(iss >> x >> y >> a >> d >> r >> nbe)) {
-        return false;
-    }
-    
-    // Set basic attributes
-    position.x = x;
-    position.y = y;
-    setAlpha(a);
-    displacement = d;
-    radius = r;
-    numElements = nbe;
-    
-    // Calculate element positions
-    calculateElements();
-    
-    // Validate the maker
-    return isValid();
 }
 
 // Validation

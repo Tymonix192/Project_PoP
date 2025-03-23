@@ -13,6 +13,8 @@ private:
     double displacement; 
     unsigned int counter;
 
+    bool isInArena() const;
+
 public:
     // Constructor
     Particule(const S2d& pos, double alpha, double disp, unsigned int count = 0);
@@ -33,12 +35,8 @@ public:
     void setCounter(unsigned int c);
     void incrementCounter();
 
-    // File parsing
-    bool readFromLine(const std::string& line);
-
     // Validation
-    bool isInArena() const;
-    bool isValid() const; 
+    int isValid() const; 
 
     // Debug
     void print() const;  // For testing/debugging
@@ -75,9 +73,6 @@ public:
     
     // Calculate positions of all elements 
     void calculateElements();
-    
-    // File parsing
-    bool readFromLine(const std::string& line);
     
     // Validation
     bool isInArena() const;

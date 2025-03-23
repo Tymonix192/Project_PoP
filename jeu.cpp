@@ -78,21 +78,23 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
     
     // Create particle and use its validation methods
     Particule p({x, y}, alpha, displacement, counter);
-    if (!p.isInArena()) {
-        std::cout << message::particule_outside(x, y);
-        return -1;
-    }
-    if (!p.isValid()) {
+
+    int validation = p.isValid(); //look at mobile.h
+    if (validation < 0) {
         // The specific error message depends on what failed
-        if (displacement < 0 || displacement > d_max) {
+        if (validation == -2) {
             std::cout << message::mobile_displacement(displacement);
             return -1;
         }
         
-        if (counter >= time_to_split) {
+        if (validation == -3) {
             std::cout << message::particule_counter(counter);
             return -1;
         }
+        if (validation == -1) {
+        std::cout << message::particule_outside(x, y);
+        return -1;
+    }
         
         // Generic error if validation fails for another reason
         return -1;
@@ -143,21 +145,22 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
     
     // Create maker and use its validation methods
     Faiseur f({x, y}, alpha, displacement, radius, nbe);
-    if (!f.isValid()) {
+    validation = f.isValid();
+    if (!f.isValid()) { //look at mobile.h
         // The specific error message depends on what failed
-        if (radius < r_min_faiseur || radius > r_max_faiseur) {
+        if (validation == -4) {
             std::cout << message::faiseur_radius(radius);
             return -1;
         }
-        if (displacement < 0 || displacement > d_max) {
+        if (validation == -2) {
             std::cout << message::mobile_displacement(displacement);
             return -1;
         }
-        if (nbe == 0) {
+        if (validation == -3) {
             std::cout << message::faiseur_nbe(nbe);
             return -1;
         }
-        if (!f.isInArena()) {
+        if (validation == -1) {
             std::cout << message::faiseur_outside(x, y);
             return -1;
         }
