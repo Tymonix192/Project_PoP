@@ -1,0 +1,1 @@
+root at (81.000000;0.000000) is not close enough to the arena boundary
