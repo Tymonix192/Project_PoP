@@ -33,7 +33,7 @@ class Circle: public Point{
         Circle::Circle(S2d cent, double rad);
         int set_radius(double r);
         double get_radius();
-        bool check_inside(Circle circle, float epsil_zero);
+        bool check_inside(Circle circle, float epsil_zero = 0.0);
         bool check_intersect(Circle other_circle);
         int set_center(S2d coordinates);
         S2d get_center();
