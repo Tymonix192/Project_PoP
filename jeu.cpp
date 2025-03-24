@@ -228,7 +228,6 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     
     // Create the chain with articulations and mode
     if (totalArticulations > 0) {
-        std::ifstream dummyFile; // Using a dummy file since we already parsed the articulations
         int result = chaine.create_chain(totalArticulations, articulations, r_max, r_capture);
         if(result <0 ) return -1;
         chaine.set_mode(mode);
