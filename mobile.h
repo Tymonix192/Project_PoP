@@ -36,11 +36,8 @@ public:
     void incrementCounter();
 
     // Validation
-    // true if > 0
-    // -1 -> out of arena
-    // -2 -> dispacement wrong
-    // -3 -> counter wrong
-    int isValid() const; 
+    // handles error message directly
+    bool isValid() const; 
 
     // Debug
     void print() const;  // For testing/debugging
@@ -81,16 +78,12 @@ public:
     void calculateElements();
     
     // Validation
-    // true if > 0
-    // -1 -> out of arena
-    // -2 -> dispacement wrong
-    // -3 -> counter wrong
-    // -4 -> radius wrong
-    int isValid() const;
+    // handles error message
+    bool isValid() const;
     
     // Collision detection
     bool collidesWithArena() const;
-    bool collidesWithFaiseur(const Faiseur& other) const;
+    bool collidesWithPoint(const S2d& point, unsigned int thisId = 0, unsigned int pointIndex = 0) const;
     bool collidesWithPoint(const S2d& point) const;
     
     // Debug
