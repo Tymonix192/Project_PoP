@@ -1,10 +1,11 @@
-class Jeu
-{
-    Jeu::Jeu();
-    void Jeu::lecture();
-};
+#ifndef PROJECT_H
+#define PROJECT_H
 
-class Model
-{
-    Model::Model();
-};
+#include "jeu.h"
+#include <string>
+
+// argc Number of command line arguments
+// argv Array of command line arguments
+int main(int argc, char* argv[]);
+
+#endif

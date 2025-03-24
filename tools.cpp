@@ -14,11 +14,11 @@
         return _point;
     }
 
-    double Point::distance_org(){
+    double Point::distance_org() {
         return sqrt(_point.x*_point.x + _point.y*_point.y);
     }
 
-    Circle::Circle(S2d center, double radius){
+    Circle::Circle(S2d center, double radius) default{
         if(radius>0)
             _radius = radius;
         else    

@@ -79,24 +79,7 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
     // Create particle and use its validation methods
     Particule p({x, y}, alpha, displacement, counter);
 
-    int validation = p.isValid(); //look at mobile.h
-    if (validation < 0) {
-        // The specific error message depends on what failed
-        if (validation == -2) {
-            std::cout << message::mobile_displacement(displacement);
-            return -1;
-        }
-        
-        if (validation == -3) {
-            std::cout << message::particule_counter(counter);
-            return -1;
-        }
-        if (validation == -1) {
-        std::cout << message::particule_outside(x, y);
-        return -1;
-    }
-        
-        // Generic error if validation fails for another reason
+    if (!p.isValid()) {
         return -1;
     }
     
@@ -134,7 +117,7 @@ int Jeu::handleFaiseurCountState(const std::string& line, ReadState& nextState) 
 
 int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIndex, 
                                unsigned int totalFaiseurs, ReadState& nextState) {
-        double x, y, alpha, displacement, radius;
+    double x, y, alpha, displacement, radius;
     unsigned int nbe;
     std::istringstream iss(line);
     
@@ -145,34 +128,13 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
     
     // Create maker and use its validation methods
     Faiseur f({x, y}, alpha, displacement, radius, nbe);
-    validation = f.isValid();
-    if (!f.isValid()) { //look at mobile.h
-        // The specific error message depends on what failed
-        if (validation == -4) {
-            std::cout << message::faiseur_radius(radius);
-            return -1;
-        }
-        if (validation == -2) {
-            std::cout << message::mobile_displacement(displacement);
-            return -1;
-        }
-        if (validation == -3) {
-            std::cout << message::faiseur_nbe(nbe);
-            return -1;
-        }
-        if (validation == -1) {
-            std::cout << message::faiseur_outside(x, y);
-            return -1;
-        }
-        
-        // Generic error if validation fails for another reason
+    if (!f.isValid()) {
         return -1;
     }
     
     // Check for collisions with existing makers
     for (size_t j = 0; j < faiseurs.size(); ++j) {
-        if (f.collidesWithFaiseur(faiseurs[j])) {
-            std::cout << message::faiseur_element_collision(faiseurIndex, 0, j, 0);
+        if (f.collidesWithFaiseur(faiseurs[j], faiseurIndex, j)) {
             return -1;
         }
     }

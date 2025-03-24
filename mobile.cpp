@@ -64,23 +64,26 @@ bool Particule::isInArena() const {
     return distance(position, ORIGIN) <= r_max;
 }
 
-int Particule::isValid() const {
+bool Particule::isValid() const {
     // Check if the particle is valid
     if (!isInArena()) {
-        return -1;
+        cout << message::particule_outside(position.x, position.y);
+        return false;
     }
     
     // Check displacement bounds
     if (displacement < 0 || displacement > d_max) {
-        return -2;
+        cout << message::mobile_displacement(displacement);
+        return false;
     }
     
     // Check counter bounds
     if (counter >= time_to_split) {
-        return -3;
+        cout << message::particule_counter(counter);
+        return false;
     }
     
-    return 1;
+    return true;
 }
 
 // Debug
@@ -218,18 +221,22 @@ bool Faiseur::isInArena() const {
 bool Faiseur::isValid() const {
     // Check if numElements is greater than 0
     if (numElements == 0) {
+        cout << message::faiseur_nbe(numElements);
         return false;
     }
     // Check radius bounds
     if (radius < r_min_faiseur || radius > r_max_faiseur) {
+        cout << message::faiseur_radius(radius);
         return false;
     }
     // Check displacement bounds
     if (displacement < 0 || displacement > d_max) {
+        cout << message::mobile_displacement(displacement);
         return false;
     }
     // Check if all elements are inside arena
     if (!isInArena()) {
+        cout << message::faiseur_outside(position.x, position.y);
         return false;
     }
     
@@ -249,13 +256,17 @@ bool Faiseur::collidesWithArena() const {
     return false;
 }
 
-bool Faiseur::collidesWithFaiseur(const Faiseur& other) const {
-    for (const S2d& elem1 : elements) {
+bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0, unsigned int otherId = 0) const {
+    for (size_t i = 0; i < elements.size(); ++i) {
+        const S2d& elem1 = elements[i];
         Circle circle1(elem1, radius);
         
-        for (const S2d& elem2 : other.elements) {
+        for (size_t j = 0; j < other.elements.size(); ++j) {
+            const S2d& elem2 = other.elements[j];
             Circle circle2(elem2, other.radius);
+            
             if (circles_intersect(circle1, circle2)) {
+                cout << message::faiseur_element_collision(thisId, i, otherId, j);
                 return true;
             }
         }
