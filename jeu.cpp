@@ -182,11 +182,6 @@ int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& 
     
     // Use the tools module to check if the point is inside the arena
     S2d point = {x, y};
-    if (distance(point, ORIGIN) >= r_max) {
-        std::cout << message::articulation_outside(x, y);
-        return -1;
-    }
-    
     articulations.push_back(point);
     
     // Validate distance between consecutive articulations
@@ -234,10 +229,8 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     // Create the chain with articulations and mode
     if (totalArticulations > 0) {
         std::ifstream dummyFile; // Using a dummy file since we already parsed the articulations
-        int result = chaine.read(totalArticulations, dummyFile, r_max, r_capture);
-        if (result < 0) {
-            return -1;
-        }
+        int result = chaine.create_chain(totalArticulations, articulations, r_max, r_capture);
+        if(result <0 ) return -1;
         chaine.set_mode(mode);
     }
     

@@ -4,11 +4,13 @@
 #include <vector>
 #include <string>
 #include "tools.h"  
+#include "message.h"
 
 class Chaine {
 private:
     std::vector<S2d> articulations; 
     std::string _mode;
+    double r_capt;
 public:
     Chaine();
     int create_chain(int nbArt, std::vector<S2d> articulaton, double r_max, double r_capture);// -1 dist from origin >= rmax
