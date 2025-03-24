@@ -36,6 +36,7 @@ int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r
             articulations.push_back(art[i]);
         }
     } 
+    r_capt=r_capture;
     return 0;
 }
 const std::vector<S2d>& Chaine::getArticulations() const {
