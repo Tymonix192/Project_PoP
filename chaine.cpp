@@ -13,10 +13,25 @@ int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r
         for (int i = 0; i < nbArt; ++i) {
             double x, y;
             double distFromOrigin = distance(art[i], ORIGIN);
-            if (distFromOrigin >= r_max) return -1; 
+            if (distFromOrigin >= r_max) 
+            {
+                message::articulation_outside(art[i].x, art[i].y);
+                return -1;
+            }
+            if( i == 0)
+            {
+                if(distFromOrigin+r_capt<r_max){
+                    message::chaine_racine(art[0].x, art[0].y);
+                    return -1;
+                }
+            }
             if (i > 0) {
                 double dist_to_prev = distance(art[i], articulations[i - 1]);
-                if (dist_to_prev > r_capture) return -2; 
+                if (dist_to_prev > r_capture) 
+                {
+                    message::chaine_max_distance(i);
+                    return -1;
+                }
             }
             articulations.push_back(art[i]);
         }
