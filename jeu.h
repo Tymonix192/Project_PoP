@@ -61,7 +61,7 @@ private:
                                    ReadState& nextState);
     // Processes the game mode line
     int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 
-                       unsigned int totalArticulations, ReadState& nextState); 
+                        int totalArticulations, ReadState& nextState); 
 public:
     //constructor
     Jeu();
