@@ -256,7 +256,7 @@ bool Faiseur::collidesWithArena() const {
     return false;
 }
 
-bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0, unsigned int otherId = 0) const {
+bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId, unsigned int otherId) const {
     for (size_t i = 0; i < elements.size(); ++i) {
         const S2d& elem1 = elements[i];
         Circle circle1(elem1, radius);

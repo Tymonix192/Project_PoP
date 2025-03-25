@@ -18,7 +18,7 @@
         return sqrt(_point.x*_point.x + _point.y*_point.y);
     }
 
-    Circle::Circle(S2d center, double radius) default{
+    Circle::Circle(S2d center, double radius){
         if(radius>0)
             _radius = radius;
         else    

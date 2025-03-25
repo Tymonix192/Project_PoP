@@ -85,7 +85,7 @@ public:
     bool collidesWithArena() const;
     //bool collidesWithPoint(const S2d& point, unsigned int thisId = 0, unsigned int pointIndex = 0) const;
     bool collidesWithPoint(const S2d& point) const;
-    bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0, unsigned int otherId = 0) const;
+    bool collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0, unsigned int otherId = 0) const;
     
     // Debug
     void print() const;
