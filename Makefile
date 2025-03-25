@@ -8,7 +8,7 @@ OFILES = project.o jeu.o mobile.o chaine.o message.o tools.o
 # Definition de la premiere regle
 
 prog: $(OFILES)
-	$(CXX) $(OFILES) -o prog
+	$(CXX) $(OFILES) -o projet
 
 # Definitions de cibles particulieres
 
