@@ -10,18 +10,17 @@ Chaine::Chaine() : _mode("CONSTRUCTION") {
 int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r_capture) {
     articulations.clear();
     if (nbArt != 0) {
-        for (int i = 0; i < nbArt; ++i) {
-            double x, y;
+        for (int i = 0; i <= nbArt; ++i) {
             double distFromOrigin = distance(art[i], ORIGIN);
             if (distFromOrigin >= r_max) 
             {
-                message::articulation_outside(art[i].x, art[i].y);
+                std::cout << message::articulation_outside(art[i].x, art[i].y);
                 return -1;
             }
             if( i == 0)
             {
-                if(distFromOrigin+r_capt<r_max){
-                    message::chaine_racine(art[0].x, art[0].y);
+                if(distFromOrigin+r_capture <r_max){
+                    std::cout << message::chaine_racine(art[0].x, art[0].y);
                     return -1;
                 }
             }
@@ -29,7 +28,7 @@ int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r
                 double dist_to_prev = distance(art[i], articulations[i - 1]);
                 if (dist_to_prev > r_capture) 
                 {
-                    message::chaine_max_distance(i);
+                    std::cout << message::chaine_max_distance(i);
                     return -1;
                 }
             }
