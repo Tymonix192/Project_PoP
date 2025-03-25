@@ -211,7 +211,7 @@ int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& 
 }
 
 int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articulations,
-                       unsigned int totalArticulations, ReadState& nextState) {
+                        int totalArticulations, ReadState& nextState) {
     std::string mode;
     std::istringstream iss(line);
     
