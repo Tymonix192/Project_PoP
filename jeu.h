@@ -14,7 +14,6 @@
  * This class is responsible for:
  * - Reading configuration files
  * - Managing game entities (particles, makers, chain)
- * - Detecting collisions between entities
  * - Managing the overall game state (score, mode, etc.)
  */
 class Jeu {
@@ -56,8 +55,10 @@ private:
     // Processes articulation count line
     int handleArticulationCountState(const std::string& line, ReadState& nextState);  
     // Processes an articulation data line
-    int handleArticulationDataState(const std::string& line, std::vector<S2d>& articulations,  
-                                   unsigned int& articulationIndex, unsigned int totalArticulations,
+    int handleArticulationDataState(const std::string& line, 
+                                std::vector<S2d>& articulations,  
+                                   unsigned int& articulationIndex, 
+                                   unsigned int totalArticulations,
                                    ReadState& nextState);
     // Processes the game mode line
     int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 

@@ -169,8 +169,10 @@ int Jeu::handleArticulationCountState(const std::string& line, ReadState& nextSt
     return nbArt; // Return count as a positive number
 }
 
-int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& articulations,
-                                   unsigned int& articulationIndex, unsigned int totalArticulations,
+int Jeu::handleArticulationDataState(const std::string& line,
+                                std::vector<S2d>& articulations,
+                                   unsigned int& articulationIndex, 
+                                   unsigned int totalArticulations,
                                    ReadState& nextState) {
     double x, y;
     std::istringstream iss(line);
@@ -186,7 +188,8 @@ int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& 
     
     // Validate distance between consecutive articulations
     if (articulationIndex > 0) {
-        double dist = distance(articulations[articulationIndex], articulations[articulationIndex-1]);
+        double dist = distance(articulations[articulationIndex], 
+                                articulations[articulationIndex-1]);
         if (dist > r_capture) {
             std::cout << message::chaine_max_distance(articulationIndex-1);
             return -1;
@@ -228,7 +231,8 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     
     // Create the chain with articulations and mode
     if (totalArticulations > 0) {
-        int result = chaine.create_chain(totalArticulations, articulations, r_max, r_capture);
+        int result = chaine.create_chain(totalArticulations, articulations, 
+                                        r_max, r_capture);
         if(result <0 ) return -1;
         chaine.set_mode(mode);
     }
@@ -302,7 +306,8 @@ int Jeu::lecture(const std::string& filename) {
                 break;
                 
             case READ_ARTICULATION_DATA:
-                result = handleArticulationDataState(line, articulations, articulationIndex, nbArt, state);
+                result = handleArticulationDataState(line, articulations, 
+                                            articulationIndex, nbArt, state);
                 if (result < 0) return -1;
                 break;
                 
@@ -312,7 +317,8 @@ int Jeu::lecture(const std::string& filename) {
                 break;
                 
             default:
-                std::cerr << "Invalid state in file reading state machine" << std::endl;
+                std::cerr << "Invalid state in file reading state machine" 
+                            << std::endl;
                 return -1;
         }
     }
