@@ -23,7 +23,7 @@ private:
     std::vector<Particule> particules;   
     std::vector<Faiseur> faiseurs;      
     Chaine chaine;                      
-        // States for the file reading state machine
+    // States for the file reading state machine
     enum ReadState {
         READ_SCORE,
         READ_PARTICULE_COUNT,

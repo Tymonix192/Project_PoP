@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #ifndef CHAINE_H
 #define CHAINE_H
 
