@@ -19,12 +19,27 @@
         return sqrt(_point.x*_point.x + _point.y*_point.y);
     }
 
+    int Point::set_coordinates(S2d coordinates){
+        _point = coordinates;
+        return 0;
+    }
+
+    void Point::draw(Color color){
+        graphic_draw_circle(_point.x, _point.y, 5, color);
+        return 0;
+    }
+
     Circle::Circle(S2d center, double radius){
         if(radius>0)
             _radius = radius;
         else    
             _radius = 0;
         _center = center;
+    }
+
+    void Circle::draw(Color color){
+        graphic_draw_circle(_center.x, _center.y, _radius, color);
+        return 0;
     }
 
     bool Circle::check_intersect(Circle other_circle){

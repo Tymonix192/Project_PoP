@@ -4,6 +4,8 @@
 
 #include <vector>
 #include <iostream>
+#include "graphic_gui.h"
+
 
 constexpr float EPSIL_ZERO = 0.0;
 
@@ -21,6 +23,8 @@ class Point{
         virtual int set_center(S2d coordinates);
         virtual S2d get_center();
         double distance_org(); // returns distance from origin
+        virutal void draw(Color color);
+        int set_coordinates(S2d coordinates);
     private:
         S2d _point;
         
@@ -37,7 +41,8 @@ class Circle: public Point{
         bool check_intersect(Circle other_circle);
         int set_center(S2d coordinates);
         S2d get_center();
-        private:
+        void draw(Color color);
+    private:
         double _radius;
         S2d _center;
 };
