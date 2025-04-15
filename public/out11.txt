@@ -1,0 +1,1 @@
+particule counter (600) must be within [0, time_to_spli[ 

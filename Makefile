@@ -33,5 +33,4 @@ jeu.o: jeu.cpp tools.h message.h chaine.h mobile.h
 mobile.o: mobile.cpp message.h tools.h
 chaine.o: chaine.cpp tools.h message.h
 message.o: message.cc message.h
-tools.o: tools.cpp tools.h graphic.h
-graphic.o: graphic.cc graphic.h graphic_gui.h
+tools.o: tools.cpp tools.h

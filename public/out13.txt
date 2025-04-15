@@ -1,0 +1,1 @@
+score (0) must be within ]0, score_max]

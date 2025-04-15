@@ -1,4 +1,3 @@
-//contributors: 399554 397957
 #include "chaine.h"
 #include <iostream>
 #include <sstream>
