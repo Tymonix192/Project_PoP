@@ -8,37 +8,33 @@
 #include <cmath>
 using namespace std;
 
-//Particle class
-// Constructor
-Particule::Particule(const S2d& pos, double alpha, double disp, unsigned int count) :
-    position(pos), alpha(alpha), displacement(disp), counter(count) {}
+//Mobile
 
-Particule::Particule() :
-    position(), alpha(0.0), displacement(0.0), counter(0) {}
+// Constructors
+Mobile::Mobile(const S2d& pos, double alpha, double disp) :
+    position(pos), alpha(alpha), displacement(disp) {}
+
+Mobile::Mobile() : position(), alpha(0.0), displacement(0.0) {}
 
 // Accessors
-S2d Particule::getPosition() const {
+S2d Mobile::getPosition() const {
     return position;
 }
 
-double Particule::getAlpha() const {
+double Mobile::getAlpha() const {
     return alpha;
 }
 
-double Particule::getDisplacement() const {
+double Mobile::getDisplacement() const {
     return displacement;
 }
 
-unsigned int Particule::getCounter() const {
-    return counter;
-}
-
 // Mutators
-void Particule::setPosition(const S2d& pos) {
+void Mobile::setPosition(const S2d& pos) {
     position = pos;
 }
 
-void Particule::setAlpha(double a) {
+void Mobile::setAlpha(double a) {
     //alpha is within [-π, π]
     while (a > M_PI)
         a -= 2 * M_PI;
@@ -47,10 +43,24 @@ void Particule::setAlpha(double a) {
     alpha = a;
 }
 
-void Particule::setDisplacement(double d) {
+void Mobile::setDisplacement(double d) {
     displacement = d;
 }
 
+//Particule
+
+// Constructors
+Particule::Particule(const S2d& pos, double alpha, double disp, unsigned int count) :
+    Mobile(pos, alpha, disp), counter(count) {}
+
+Particule::Particule() : Mobile(), counter(0) {}
+
+// Accessors
+unsigned int Particule::getCounter() const {
+    return counter;
+}
+
+// Mutators
 void Particule::setCounter(unsigned int c) {
     counter = c;
 }
@@ -95,34 +105,20 @@ void Particule::print() const {
               << "Counter: " << counter << endl;
 }
 
-
-
-//class Faiseur
+// Faiseur
 
 // Constructors
 Faiseur::Faiseur() :
-    position(), alpha(0.0), displacement(0.0), radius(r_min_faiseur), numElements(1) {
+    Mobile(), radius(r_min_faiseur), numElements(1) {
     calculateElements();
 }
 
 Faiseur::Faiseur(const S2d& pos, double alpha, double disp, double rad, unsigned int nbe) :
-    position(pos), alpha(alpha), displacement(disp), radius(rad), numElements(nbe) {
+    Mobile(pos, alpha, disp), radius(rad), numElements(nbe) {
     calculateElements();
 }
 
 // Accessors
-S2d Faiseur::getPosition() const {
-    return position;
-}
-
-double Faiseur::getAlpha() const {
-    return alpha;
-}
-
-double Faiseur::getDisplacement() const {
-    return displacement;
-}
-
 double Faiseur::getRadius() const {
     return radius;
 }
@@ -136,25 +132,6 @@ const std::vector<S2d>& Faiseur::getElements() const {
 }
 
 // Mutators
-void Faiseur::setPosition(const S2d& pos) {
-    position = pos;
-    calculateElements();
-}
-
-void Faiseur::setAlpha(double a) {
-    while (a > M_PI)
-        a -= 2 * M_PI;
-    while (a < -M_PI)
-        a += 2 * M_PI;
-    alpha = a;
-    calculateElements();
-}
-
-void Faiseur::setDisplacement(double d) {
-    displacement = d;
-    calculateElements();
-}
-
 void Faiseur::setRadius(double r) {
     radius = r;
 }
