@@ -26,7 +26,6 @@
 
     void Point::draw(Color color){
         graphic_draw_circle(_point.x, _point.y, 5, color);
-        return 0;
     }
 
     Circle::Circle(S2d center, double radius){
@@ -39,7 +38,6 @@
 
     void Circle::draw(Color color){
         graphic_draw_circle(_center.x, _center.y, _radius, color);
-        return 0;
     }
 
     bool Circle::check_intersect(Circle other_circle){

@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include "graphic.h"
 #include "graphic_gui.h"
 
 using namespace std;

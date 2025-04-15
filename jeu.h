@@ -35,6 +35,12 @@ private:
         READ_MODE,
         READ_COMPLETE
     };
+    enum Status
+    {
+        ONGOING,
+        WON,
+        LOST
+    };
     //Methods
     // Validates any remaining global constraints
     bool validateGlobalConstraints() const;
