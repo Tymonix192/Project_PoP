@@ -256,11 +256,11 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     return 0;
 }
 
-int Jeu::lecture(const std::string& filename) {
+bool Jeu::lecture(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Cannot open file: " << filename << std::endl;
-        return -1;
+        return false;
     }
     
     // Clear existing data
@@ -280,42 +280,42 @@ int Jeu::lecture(const std::string& filename) {
         // Read the next significant line
         if (!readNextLine(file, line)) {
             std::cerr << "Unexpected end of file in state " << state << std::endl;
-            return -1;
+            return false;
         }
         // Handle the current state
         switch (state) {
             case READ_SCORE:
                 result = handleScoreState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 break;
                 
             case READ_PARTICULE_COUNT:
                 result = handleParticleCountState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 nbPart = result;
                 particleIndex = 0;
                 break;
                 
             case READ_PARTICULE_DATA:
                 result = handleParticleDataState(line, particleIndex, nbPart, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 break;
                 
             case READ_FAISEUR_COUNT:
                 result = handleFaiseurCountState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 nbFais = result;
                 faiseurIndex = 0;
                 break;
                 
             case READ_FAISEUR_DATA:
                 result = handleFaiseurDataState(line, faiseurIndex, nbFais, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 break;
                 
             case READ_ARTICULATION_COUNT:
                 result = handleArticulationCountState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 nbArt = result;
                 articulationIndex = 0;
                 articulations.clear();
@@ -324,24 +324,24 @@ int Jeu::lecture(const std::string& filename) {
             case READ_ARTICULATION_DATA:
                 result = handleArticulationDataState(line, articulations, 
                                             articulationIndex, nbArt, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 break;
                 
             case READ_MODE:
                 result = handleModeState(line, articulations, nbArt, state);
-                if (result < 0) return -1;
+                if (result < 0) return false;
                 break;
                 
             default:
                 std::cerr << "Invalid state in file reading state machine" 
                             << std::endl;
-                return -1;
+                return false;
         }
     }
     
     // Success message
     std::cout << message::success();
-    return 0;
+    return true;
 }
 
 unsigned int Jeu::getScore() const {

@@ -79,7 +79,7 @@ public:
     //constructor
     Jeu();
 
-    int lecture(const std::string& filename);
+    bool lecture(const std::string& filename);
     
     //accessors
     unsigned int getScore() const;
