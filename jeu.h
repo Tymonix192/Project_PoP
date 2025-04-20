@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include <iostream>
 #include "chaine.h"
 #include "mobile.h"
@@ -19,11 +20,13 @@
 class Jeu {
 private:
     //attributs
-    unsigned int score;                 
-    std::vector<Particule> particules;   
-    std::vector<Faiseur> faiseurs;      
+    unsigned int score;           
+    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
+    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
+    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
     Chaine chaine;                      
-        // States for the file reading state machine
+    
+    // States for the file reading state machine
     enum ReadState {
         READ_SCORE,
         READ_PARTICULE_COUNT,
@@ -35,6 +38,15 @@ private:
         READ_MODE,
         READ_COMPLETE
     };
+    enum Status
+    {
+        ONGOING,
+        WON,
+        LOST
+    };
+    // Helper methods for entity access
+    Particule* getParticule(size_t index);
+    Faiseur* getFaiseur(size_t index);
     //Methods
     // Validates any remaining global constraints
     bool validateGlobalConstraints() const;
@@ -66,7 +78,6 @@ private:
 public:
     //constructor
     Jeu();
-
 
     int lecture(const std::string& filename);
     

@@ -36,6 +36,10 @@ public:
     virtual bool isValid() const = 0;
     virtual bool isInArena() const = 0;
     virtual void print() const = 0;  // For testing/debugging
+    
+    // Additional virtual methods for type identification
+    virtual bool isParticule() const { return false; }
+    virtual bool isFaiseur() const { return false; }
 };
 
 class Particule : public Mobile {
@@ -58,6 +62,7 @@ public:
     bool isValid() const override;
     bool isInArena() const override;
     void print() const override;
+    bool isParticule() const override { return true; }
 };
 
 class Faiseur : public Mobile {
@@ -87,6 +92,7 @@ public:
     bool isValid() const override;
     bool isInArena() const override;
     void print() const override;
+    bool isFaiseur() const override { return true; }
     
     // Collision detection
     bool collidesWithArena() const;
