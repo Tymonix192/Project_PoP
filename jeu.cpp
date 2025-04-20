@@ -381,10 +381,8 @@ bool Jeu::saveToFile(const std::string& filename) {
         std::cerr << "Cannot open file for writing: " << filename << std::endl;
         return false;
     }
-    
     // Write score
     file << score << std::endl;
-
     // Write particles
     file << particuleIndices.size() << std::endl;
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
@@ -394,8 +392,7 @@ bool Jeu::saveToFile(const std::string& filename) {
              << p->getAlpha() << " " 
              << p->getDisplacement() << " "
              << p->getCounter() << std::endl;
-    }
-    
+    }  
     // Write makers (faiseurs)
     file << faiseurIndices.size() << std::endl;
     for (size_t i = 0; i < faiseurIndices.size(); ++i) {
@@ -406,15 +403,13 @@ bool Jeu::saveToFile(const std::string& filename) {
              << f->getDisplacement() << " "
              << f->getRadius() << " " 
              << f->getNumElements() << std::endl;
-    }
-    
+    }  
     // Write chain articulations
     const std::vector<S2d>& articulations = chaine.getArticulations();
     file << articulations.size() << std::endl;
     for (const S2d& art : articulations) {
         file << art.x << " " << art.y << std::endl;
-    }
-    
+    }   
     // Write mode
     file << chaine.get_mode() << std::endl;
     
