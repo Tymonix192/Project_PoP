@@ -86,7 +86,7 @@ public:
 
     bool saveToFile(const std::string& filename);
     
-    bool restart()
+    bool restart();
     
     //accessors
     unsigned int getScore() const;
