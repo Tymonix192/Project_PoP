@@ -256,6 +256,14 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     return 0;
 }
 
+void Jeu::clearGameData() {
+    // Clear all game data structures
+    mobiles.clear();
+    particuleIndices.clear();
+    faiseurIndices.clear();
+    // The chaine class handles its own data clearing
+}
+
 bool Jeu::lecture(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
@@ -263,10 +271,7 @@ bool Jeu::lecture(const std::string& filename) {
         return false;
     }
     
-    // Clear existing data
-    mobiles.clear();
-    particuleIndices.clear();
-    faiseurIndices.clear();
+    clearGameData();
     
     ReadState state = READ_SCORE;
     std::string line;
@@ -280,42 +285,61 @@ bool Jeu::lecture(const std::string& filename) {
         // Read the next significant line
         if (!readNextLine(file, line)) {
             std::cerr << "Unexpected end of file in state " << state << std::endl;
+            clearGameData();
             return false;
         }
         // Handle the current state
         switch (state) {
             case READ_SCORE:
                 result = handleScoreState(line, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_PARTICULE_COUNT:
                 result = handleParticleCountState(line, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 nbPart = result;
                 particleIndex = 0;
                 break;
                 
             case READ_PARTICULE_DATA:
                 result = handleParticleDataState(line, particleIndex, nbPart, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_FAISEUR_COUNT:
                 result = handleFaiseurCountState(line, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 nbFais = result;
                 faiseurIndex = 0;
                 break;
                 
             case READ_FAISEUR_DATA:
                 result = handleFaiseurDataState(line, faiseurIndex, nbFais, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_ARTICULATION_COUNT:
                 result = handleArticulationCountState(line, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 nbArt = result;
                 articulationIndex = 0;
                 articulations.clear();
@@ -324,17 +348,24 @@ bool Jeu::lecture(const std::string& filename) {
             case READ_ARTICULATION_DATA:
                 result = handleArticulationDataState(line, articulations, 
                                             articulationIndex, nbArt, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_MODE:
                 result = handleModeState(line, articulations, nbArt, state);
-                if (result < 0) return false;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             default:
                 std::cerr << "Invalid state in file reading state machine" 
                             << std::endl;
+                clearGameData();
                 return false;
         }
     }
@@ -342,6 +373,60 @@ bool Jeu::lecture(const std::string& filename) {
     // Success message
     std::cout << message::success();
     return true;
+}
+
+bool Jeu::saveToFile(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Cannot open file for writing: " << filename << std::endl;
+        return false;
+    }
+    
+    // Write score
+    file << score << std::endl;
+
+    // Write particles
+    file << particuleIndices.size() << std::endl;
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        Particule* p = getParticule(i);
+        file << p->getPosition().x << " " 
+             << p->getPosition().y << " "
+             << p->getAlpha() << " " 
+             << p->getDisplacement() << " "
+             << p->getCounter() << std::endl;
+    }
+    
+    // Write makers (faiseurs)
+    file << faiseurIndices.size() << std::endl;
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        Faiseur* f = getFaiseur(i);
+        file << f->getPosition().x << " " 
+             << f->getPosition().y << " "
+             << f->getAlpha() << " " 
+             << f->getDisplacement() << " "
+             << f->getRadius() << " " 
+             << f->getNumElements() << std::endl;
+    }
+    
+    // Write chain articulations
+    const std::vector<S2d>& articulations = chaine.getArticulations();
+    file << articulations.size() << std::endl;
+    for (const S2d& art : articulations) {
+        file << art.x << " " << art.y << std::endl;
+    }
+    
+    // Write mode
+    file << chaine.get_mode() << std::endl;
+    
+    return true;
+}
+
+bool Jeu::restart() {
+    if (lastLoadedFile.empty()) {
+        std::cerr << "No previous file loaded to restart" << std::endl;
+        return false;
+    }
+    return lecture(lastLoadedFile);
 }
 
 unsigned int Jeu::getScore() const {

@@ -24,7 +24,8 @@ private:
     std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
     std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
     std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
-    Chaine chaine;                      
+    Chaine chaine;   
+    std::string lastLoadedFile;                   
     
     // States for the file reading state machine
     enum ReadState {
@@ -44,10 +45,10 @@ private:
         WON,
         LOST
     };
+    //Methods
     // Helper methods for entity access
     Particule* getParticule(size_t index);
     Faiseur* getFaiseur(size_t index);
-    //Methods
     // Validates any remaining global constraints
     bool validateGlobalConstraints() const;
     // Reads next non-empty, non-comment line
@@ -75,11 +76,17 @@ private:
     // Processes the game mode line
     int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 
                         int totalArticulations, ReadState& nextState); 
+    //clears all data in the game
+    void clearGameData();
 public:
     //constructor
     Jeu();
 
     bool lecture(const std::string& filename);
+
+    bool saveToFile(const std::string& filename);
+    
+    bool restart()
     
     //accessors
     unsigned int getScore() const;
