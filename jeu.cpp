@@ -11,6 +11,16 @@ Jeu::Jeu() : score(0) {
     // All other containers are initialized by their default constructors
 }
 
+// Helper methods for type-safe entity access
+Particule* Jeu::getParticule(size_t index) {
+    if (index >= particuleIndices.size()) return nullptr;
+    return static_cast<Particule*>(mobiles[particuleIndices[index]].get());
+}
+
+Faiseur* Jeu::getFaiseur(size_t index) {
+    if (index >= faiseurIndices.size()) return nullptr;
+    return static_cast<Faiseur*>(mobiles[faiseurIndices[index]].get());
+}
 
 bool Jeu::readNextLine(std::ifstream& file, std::string& line) {
     while (getline(file >> std::ws, line)) {
@@ -77,15 +87,16 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
         return -1;
     }
     
-    // Create particle and use its validation methods
-    Particule p({x, y}, alpha, displacement, counter);
+    // Create particle
+    std::unique_ptr<Particule> particle(new Particule(S2d{x, y}, alpha, displacement, counter));
 
-    if (!p.isValid()) {
+    if (!particle->isValid()) {
         return -1;
     }
     
-    // Add valid particle
-    particules.push_back(p);
+    // Add valid particle and store its index
+    particuleIndices.push_back(mobiles.size());
+    mobiles.push_back(std::move(particle));
     
     // Check if we've read all particles
     particleIndex++;
@@ -95,7 +106,6 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
     
     return 0;
 }
-
 
 int Jeu::handleFaiseurCountState(const std::string& line, ReadState& nextState) {
     unsigned int nbFais;
@@ -127,21 +137,24 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
         return -1;
     }
     
-    // Create maker and use its validation methods
-    Faiseur f({x, y}, alpha, displacement, radius, nbe);
-    if (!f.isValid()) {
+    // Create maker
+    std::unique_ptr<Faiseur> maker(new Faiseur (S2d{x, y}, alpha, displacement, radius, nbe));
+    if (!maker->isValid()) {
         return -1;
     }
     
     // Check for collisions with existing makers
-    for (size_t j = 0; j < faiseurs.size(); ++j) {
-        if (f.collidesWithFaiseur(faiseurs[j], faiseurIndex, j)) {
+    for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+        Faiseur* existingMaker = getFaiseur(j);
+        if (maker->collidesWithFaiseur(*existingMaker, faiseurIndex, j)) {
             return -1;
         }
     }
     
-    // Add valid maker
-    faiseurs.push_back(f);
+    // Add valid maker and store its index
+    faiseurIndices.push_back(mobiles.size());
+    mobiles.push_back(std::move(maker));
+    
     // Check if we've read all makers
     faiseurIndex++;
     if (faiseurIndex >= totalFaiseurs) {
@@ -198,8 +211,9 @@ int Jeu::handleArticulationDataState(const std::string& line,
     }
     
     // Check for collisions with makers
-    for (size_t j = 0; j < faiseurs.size(); ++j) {
-        if (faiseurs[j].collidesWithPoint(point)) {
+    for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+        Faiseur* maker = getFaiseur(j);
+        if (maker->collidesWithPoint(point)) {
             std::cout << message::chaine_articulation_collision(articulationIndex, j, 0);
             return -1;
         }
@@ -234,7 +248,7 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     if (totalArticulations > 0) {
         int result = chaine.create_chain(totalArticulations, articulations, 
                                         r_max, r_capture);
-        if(result <0 ) return -1;
+        if(result < 0) return -1;
         chaine.set_mode(mode);
     }
     
@@ -250,8 +264,9 @@ int Jeu::lecture(const std::string& filename) {
     }
     
     // Clear existing data
-    particules.clear();
-    faiseurs.clear();
+    mobiles.clear();
+    particuleIndices.clear();
+    faiseurIndices.clear();
     
     ReadState state = READ_SCORE;
     std::string line;
@@ -334,11 +349,11 @@ unsigned int Jeu::getScore() const {
 }
 
 size_t Jeu::getNbParticules() const {
-    return particules.size();
+    return particuleIndices.size();
 }
 
 size_t Jeu::getNbFaiseurs() const {
-    return faiseurs.size();
+    return faiseurIndices.size();
 }
 
 size_t Jeu::getNbArticulations() const {
@@ -348,4 +363,3 @@ size_t Jeu::getNbArticulations() const {
 std::string Jeu::getMode() const {
     return chaine.get_mode();
 }
-
