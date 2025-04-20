@@ -50,6 +50,39 @@ int Chaine::set_mode(std::string mode = "CONSTRUCTION"){
     return 0;
 }
 
+bool Chaine::isCollidingWithFaiseur(const Faiseur& faiseur) const {
+    // If no articulations, no collision
+    if (articulations.empty()) {
+        return false;
+    }
+    
+    // Check each articulation against the faiseur
+    for (size_t i = 0; i < articulations.size(); ++i) {
+        if (faiseur.collidesWithPoint(articulations[i])) {
+            return true;
+        }
+    }
+    
+    return false;
+}
+
+bool Chaine::checkCollisionsWithFaiseurs(const std::vector<Faiseur*>& faiseurs) {
+    // If no articulations, no collision
+    if (articulations.empty()) {
+        return false;
+    }
+    
+    // Check each faiseur
+    for (Faiseur* faiseur : faiseurs) {
+        if (faiseur && isCollidingWithFaiseur(*faiseur)) {
+            // Collision detected, reset chain
+            articulations.clear();
+            return true;
+        }
+    }
+    
+    return false; // No collisions
+}
 
 void Chaine::print() const {
     std::cout << "Chaine (" << articulations.size() << " articulations):\n";

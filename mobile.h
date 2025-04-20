@@ -4,6 +4,7 @@
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "tools.h"
 using namespace std;
 
@@ -32,12 +33,16 @@ public:
     void setAlpha(double a);
     void setDisplacement(double d);
     
+    // Common functionality
+    S2d calculateNextPosition() const;
+    
     // Pure virtual methods
+    virtual void move() = 0; // Each entity type implements its own movement logic
     virtual bool isValid() const = 0;
     virtual bool isInArena() const = 0;
     virtual void print() const = 0;  // For testing/debugging
     
-    // Additional virtual methods for type identification
+    // Type identification
     virtual bool isParticule() const { return false; }
     virtual bool isFaiseur() const { return false; }
 };
@@ -57,6 +62,11 @@ public:
     // Mutators
     void setCounter(unsigned int c);
     void incrementCounter();
+
+    // Particle-specific behavior
+    void move() override;
+    bool shouldSplit() const;
+    void createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles) const;
 
     // Overridden methods
     bool isValid() const override;
@@ -85,20 +95,18 @@ public:
     void setRadius(double r);
     void setNumElements(unsigned int nbe);
     
-    // Calculate positions of all elements 
+    // Faiseur-specific behavior
     void calculateElements();
+    void move() override;
+    bool collidesWithPoint(const S2d& point) const;
+    bool collidesWithFaiseur(const Faiseur& other, 
+                            unsigned int thisId = 0, unsigned int otherId = 0) const;
     
     // Overridden methods
     bool isValid() const override;
     bool isInArena() const override;
     void print() const override;
     bool isFaiseur() const override { return true; }
-    
-    // Collision detection
-    bool collidesWithArena() const;
-    bool collidesWithPoint(const S2d& point) const;
-    bool collidesWithFaiseur(const Faiseur& other, 
-                            unsigned int thisId = 0, unsigned int otherId = 0) const;
 };
 
 #endif
