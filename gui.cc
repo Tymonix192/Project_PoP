@@ -39,7 +39,8 @@ My_window::My_window(string file_name)
                  Gtk::Label("particules:"),
                  Gtk::Label("faiseurs:"),
                  Gtk::Label("articulations:")}),
-      previous_file_name(file_name)
+      previous_file_name(file_name),
+      window(this)
       // ici éventuelle initialisation de l'attribut pour l'accès au jeu
 {
     set_title("Linked-Crossing Challenge");
