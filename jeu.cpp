@@ -5,9 +5,10 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 // Constructor initializes the game state
-Jeu::Jeu() : score(0) {
+Jeu::Jeu() : score(0), lastLoadedFile("") {
     // All other containers are initialized by their default constructors
 }
 
@@ -20,6 +21,15 @@ Particule* Jeu::getParticule(size_t index) {
 Faiseur* Jeu::getFaiseur(size_t index) {
     if (index >= faiseurIndices.size()) return nullptr;
     return static_cast<Faiseur*>(mobiles[faiseurIndices[index]].get());
+}
+
+std::vector<Faiseur*> Jeu::getAllFaiseurs() {
+    std::vector<Faiseur*> result;
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        Faiseur* f = getFaiseur(i);
+        if (f) result.push_back(f);
+    }
+    return result;
 }
 
 bool Jeu::readNextLine(std::ifstream& file, std::string& line) {
@@ -138,7 +148,7 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
     }
     
     // Create maker
-    std::unique_ptr<Faiseur> maker(new Faiseur (S2d{x, y}, alpha, displacement, radius, nbe));
+    std::unique_ptr<Faiseur> maker(new Faiseur(S2d{x, y}, alpha, displacement, radius, nbe));
     if (!maker->isValid()) {
         return -1;
     }
@@ -370,6 +380,9 @@ bool Jeu::lecture(const std::string& filename) {
         }
     }
     
+    // Save the filename for potential restart
+    lastLoadedFile = filename;
+    
     // Success message
     std::cout << message::success();
     return true;
@@ -381,8 +394,10 @@ bool Jeu::saveToFile(const std::string& filename) {
         std::cerr << "Cannot open file for writing: " << filename << std::endl;
         return false;
     }
+    
     // Write score
     file << score << std::endl;
+
     // Write particles
     file << particuleIndices.size() << std::endl;
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
@@ -392,7 +407,8 @@ bool Jeu::saveToFile(const std::string& filename) {
              << p->getAlpha() << " " 
              << p->getDisplacement() << " "
              << p->getCounter() << std::endl;
-    }  
+    }
+    
     // Write makers (faiseurs)
     file << faiseurIndices.size() << std::endl;
     for (size_t i = 0; i < faiseurIndices.size(); ++i) {
@@ -403,13 +419,15 @@ bool Jeu::saveToFile(const std::string& filename) {
              << f->getDisplacement() << " "
              << f->getRadius() << " " 
              << f->getNumElements() << std::endl;
-    }  
+    }
+    
     // Write chain articulations
     const std::vector<S2d>& articulations = chaine.getArticulations();
     file << articulations.size() << std::endl;
     for (const S2d& art : articulations) {
         file << art.x << " " << art.y << std::endl;
-    }   
+    }
+    
     // Write mode
     file << chaine.get_mode() << std::endl;
     
@@ -442,4 +460,147 @@ size_t Jeu::getNbArticulations() const {
 
 std::string Jeu::getMode() const {
     return chaine.get_mode();
+}
+
+// Update
+
+bool Jeu::update() {
+    // Decrement score
+    if (score <= 0) {
+        return false; // Game over (failure)
+    }
+    score--;
+    
+    // Update all entities
+    updateParticules();
+    updateFaiseurs();
+    
+    // Check for collisions between chain and faiseurs
+    if (!chaine.getArticulations().empty()) {
+        chaine.checkCollisionsWithFaiseurs(getAllFaiseurs());
+    }
+    
+    return true; // Update successful
+}
+
+void Jeu::updateParticules() {
+    std::vector<size_t> particlesToRemove;
+    std::vector<std::unique_ptr<Particule>> newParticles;
+    
+    // Process particles - increment counters and handle splitting
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        Particule* p = getParticule(i);
+        if (!p) continue;
+        
+        // Increment counter
+        p->incrementCounter();
+        
+        // Check if particle should split or be destroyed
+        if (p->shouldSplit()) {
+            if (particuleIndices.size() + newParticles.size() >= nb_particule_max) {
+                // Maximum particles reached - destroy this particle
+                particlesToRemove.push_back(i);
+            } else {
+                // Create two new particles from the split
+                p->createSplitParticles(newParticles);
+                
+                // Mark original particle for removal
+                particlesToRemove.push_back(i);
+            }
+        }
+    }
+    
+    // Move existing particles (except those marked for removal)
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        if (std::find(particlesToRemove.begin(), particlesToRemove.end(), i) != particlesToRemove.end()) {
+            continue; // Skip particles marked for removal
+        }
+        
+        Particule* p = getParticule(i);
+        if (p) p->move(); // Delegate movement to the particle itself
+    }
+    
+    // Move and add new particles
+    for (auto& newParticle : newParticles) {
+        newParticle->move(); // Move the new particle
+        
+        // Add to game state
+        particuleIndices.push_back(mobiles.size());
+        mobiles.push_back(std::move(newParticle));
+    }
+    
+    // Remove particles marked for deletion
+    removeMarkedEntities(particlesToRemove, particuleIndices);
+}
+
+void Jeu::updateFaiseurs() {
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        Faiseur* f = getFaiseur(i);
+        if (!f) continue;
+        
+        // Check if faiseur can move (no collisions with other faiseurs)
+        bool canMove = true;
+        
+        for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+            if (i == j) continue; // Skip self
+            
+            Faiseur* otherF = getFaiseur(j);
+            if (!otherF) continue;
+            
+            // Temporarily calculate next position
+            S2d currentPos = f->getPosition();
+            S2d nextPos = f->calculateNextPosition();
+            
+            // Temporarily set position to check collision
+            f->setPosition(nextPos);
+            
+            if (f->collidesWithFaiseur(*otherF, i, j)) {
+                canMove = false;
+                // Restore original position
+                f->setPosition(currentPos);
+                break;
+            }
+            
+            // Restore original position
+            f->setPosition(currentPos);
+        }
+        
+        // If no collisions with other faiseurs, move the faiseur
+        if (canMove) {
+            f->move(); // Delegate movement to the faiseur itself
+        }
+    }
+}
+
+void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
+                              std::vector<size_t>& entityIndices) {
+    // Sort indices in descending order to avoid index shifting issues
+    std::vector<size_t> sortedIndices = indicesToRemove;
+    std::sort(sortedIndices.begin(), sortedIndices.end(), std::greater<size_t>());
+    
+    for (size_t idx : sortedIndices) {
+        if (idx >= entityIndices.size()) continue;
+        
+        size_t mobileIdx = entityIndices[idx];
+        
+        // Remove from entityIndices
+        entityIndices.erase(entityIndices.begin() + idx);
+        
+        // Update all indices greater than the removed one
+        for (size_t& pIdx : particuleIndices) {
+            if (pIdx > mobileIdx) {
+                pIdx--;
+            }
+        }
+        for (size_t& fIdx : faiseurIndices) {
+            if (fIdx > mobileIdx) {
+                fIdx--;
+            }
+        }
+        
+        // Remove the mobile
+        if (mobileIdx < mobiles.size()) {
+            mobiles.erase(mobiles.begin() + mobileIdx);
+        }
+    }
 }

@@ -47,6 +47,17 @@ void Mobile::setDisplacement(double d) {
     displacement = d;
 }
 
+<<<<<<< HEAD
+=======
+// Calculate next position
+S2d Mobile::calculateNextPosition() const {
+    return {
+        position.x + displacement * cos(alpha),
+        position.y + displacement * sin(alpha)
+    };
+}
+
+>>>>>>> github/Edo
 //Particule
 
 // Constructors
@@ -69,9 +80,57 @@ void Particule::incrementCounter() {
     counter++;
 }
 
+// Check if particle should split
+bool Particule::shouldSplit() const {
+    return counter >= time_to_split;
+}
+
+// Create two new particles from this one
+void Particule::createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles) const {
+    // First new particle
+    auto p1 = std::make_unique<Particule>(
+        position,
+        alpha + delta_split,
+        displacement * coef_split
+    );
+    
+    // Second new particle
+    auto p2 = std::make_unique<Particule>(
+        position,
+        alpha - delta_split,
+        displacement * coef_split
+    );
+    
+    // Add both to the provided vector
+    newParticles.push_back(std::move(p1));
+    newParticles.push_back(std::move(p2));
+}
+
+// Implementation of move for particles
+void Particule::move() {
+    S2d nextPos = calculateNextPosition();
+    
+    // Check if would move outside arena
+    double distFromOrigin = distance(nextPos, ORIGIN);
+    if (distFromOrigin > r_max) {
+        // Calculate bounce
+        Vector moveVector;
+        moveVector.set_coordinates(position, nextPos);
+        double newAlpha = moveVector.bounce();
+        
+        // Update angle
+        setAlpha(newAlpha);
+        
+        // Recalculate position with new angle
+        nextPos = calculateNextPosition();
+    }
+    
+    // Update position
+    setPosition(nextPos);
+}
+
 // Validation
 bool Particule::isInArena() const {
-    Circle arenaCircle(ORIGIN, r_max);
     return distance(position, ORIGIN) <= r_max;
 }
 
@@ -100,9 +159,9 @@ bool Particule::isValid() const {
 // Debug
 void Particule::print() const {
     cout << "Particule: Position(" << position.x << ", " << position.y << "), "
-              << "Alpha: " << alpha << ", "
-              << "Displacement: " << displacement << ", "
-              << "Counter: " << counter << endl;
+         << "Alpha: " << alpha << ", "
+         << "Displacement: " << displacement << ", "
+         << "Counter: " << counter << endl;
 }
 
 // Faiseur
@@ -183,6 +242,32 @@ void Faiseur::calculateElements() {
     }
 }
 
+// Implementation of move for faiseurs
+void Faiseur::move() {
+    S2d nextPos = calculateNextPosition();
+    
+    // Check if would move outside arena
+    Circle arenaCircle(ORIGIN, r_max);
+    Circle faiseurCircle(nextPos, radius);
+    
+    if (!faiseurCircle.check_inside(arenaCircle)) {
+        // Calculate bounce
+        Vector moveVector;
+        moveVector.set_coordinates(position, nextPos);
+        double newAlpha = moveVector.bounce();
+        
+        // Update angle
+        setAlpha(newAlpha);
+        
+        // Recalculate position with new angle
+        nextPos = calculateNextPosition();
+    }
+    
+    // Update position and recalculate elements
+    setPosition(nextPos);
+    calculateElements();
+}
+
 // Validation
 bool Faiseur::isInArena() const {
     Circle arenaCircle(ORIGIN, r_max);
@@ -222,12 +307,12 @@ bool Faiseur::isValid() const {
 }
 
 // Collision detection
-bool Faiseur::collidesWithArena() const {
-    Circle arenaCircle(ORIGIN, r_max);
-    // Check if any element collides with the arena boundary
+bool Faiseur::collidesWithPoint(const S2d& point) const {
     for (const S2d& element : elements) {
-        Circle elementCircle(element, radius);
-        if (!elementCircle.check_inside(arenaCircle)) {
+        double dist = distance(point, element);
+        
+        // Point is inside element
+        if (dist < radius) {
             return true;
         }
     }
@@ -253,25 +338,13 @@ bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId,
     return false;
 }
 
-bool Faiseur::collidesWithPoint(const S2d& point) const {
-    for (const S2d& element : elements) {
-        double dist = distance(point, element);
-        
-        // Point is inside element
-        if (dist < radius) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // Debug
 void Faiseur::print() const {
     cout << "Faiseur: Head(" << position.x << ", " << position.y << "), "
-              << "Alpha: " << alpha << ", "
-              << "Displacement: " << displacement << ", "
-              << "Radius: " << radius << ", "
-              << "NumElements: " << numElements << endl;
+         << "Alpha: " << alpha << ", "
+         << "Displacement: " << displacement << ", "
+         << "Radius: " << radius << ", "
+         << "NumElements: " << numElements << endl;
     
     cout << "Elements: " << endl;
     for (size_t i = 0; i < elements.size(); ++i) {

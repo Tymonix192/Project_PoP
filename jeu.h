@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #ifndef JEU_H
 #define JEU_H
 
@@ -21,9 +22,15 @@ class Jeu {
 private:
     //attributs
     unsigned int score;           
+<<<<<<< HEAD
     std::vector<std::unique_ptr<Mobile>> mobiles;// Polymorphic collection
     std::vector<size_t> particuleIndices;// Indices of particles in the mobiles vector
     std::vector<size_t> faiseurIndices;// Indices of makers in the mobiles vector
+=======
+    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
+    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
+    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
+>>>>>>> github/Edo
     Chaine chaine;   
     std::string lastLoadedFile;                   
     
@@ -39,12 +46,12 @@ private:
         READ_MODE,
         READ_COMPLETE
     };
-    enum Status
-    {
+    enum Status {
         ONGOING,
         WON,
         LOST
     };
+<<<<<<< HEAD
     //Methods
     // Helper methods for entity access
     Particule* getParticule(size_t index);
@@ -52,29 +59,31 @@ private:
     // Validates any remaining global constraints
     bool validateGlobalConstraints() const;
     // Reads next non-empty, non-comment line
+=======
+    
+    // Helper methods for entity access
+    Particule* getParticule(size_t index);
+    Faiseur* getFaiseur(size_t index);
+    std::vector<Faiseur*> getAllFaiseurs();
+    
+    // File reading helpers
+>>>>>>> github/Edo
     bool readNextLine(std::ifstream& file, std::string& line);
-    // Processes the score line
     int handleScoreState(const std::string& line, ReadState& nextState); 
-    // Processes particle count line
     int handleParticleCountState(const std::string& line, ReadState& nextState);  
-    // Processes a particle data line
     int handleParticleDataState(const std::string& line, unsigned int& particleIndex,  
                                unsigned int totalParticles, ReadState& nextState);
-    // Processes maker count line
     int handleFaiseurCountState(const std::string& line, ReadState& nextState);  
-     // Processes a maker data line
     int handleFaiseurDataState(const std::string& line, unsigned int& faiseurIndex, 
                               unsigned int totalFaiseurs, ReadState& nextState);
-    // Processes articulation count line
     int handleArticulationCountState(const std::string& line, ReadState& nextState);  
-    // Processes an articulation data line
     int handleArticulationDataState(const std::string& line, 
                                 std::vector<S2d>& articulations,  
                                    unsigned int& articulationIndex, 
                                    unsigned int totalArticulations,
                                    ReadState& nextState);
-    // Processes the game mode line
     int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 
+<<<<<<< HEAD
                         int totalArticulations, ReadState& nextState); 
     //clears all data in the game
     void clearGameData();
@@ -87,14 +96,34 @@ public:
     bool saveToFile(const std::string& filename);
     
     bool restart();
+=======
+                        int totalArticulations, ReadState& nextState);
+                         
+    // Update helpers
+    void updateParticules();
+    void updateFaiseurs();
+    void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, std::vector<size_t>& entityIndices);
+>>>>>>> github/Edo
     
-    //accessors
+    // Data management
+    void clearGameData();
+    
+public:
+    // Constructor
+    Jeu();
+    
+    // File operations
+    bool lecture(const std::string& filename);
+    bool saveToFile(const std::string& filename);
+    bool restart();
+    bool update();
+    
+    // Accessors
     unsigned int getScore() const;
     size_t getNbParticules() const;
     size_t getNbFaiseurs() const;
     size_t getNbArticulations() const;
     std::string getMode() const;
 };
-
 
 #endif
