@@ -47,8 +47,6 @@ void Mobile::setDisplacement(double d) {
     displacement = d;
 }
 
-<<<<<<< HEAD
-=======
 // Calculate next position
 S2d Mobile::calculateNextPosition() const {
     return {
@@ -57,7 +55,6 @@ S2d Mobile::calculateNextPosition() const {
     };
 }
 
->>>>>>> github/Edo
 //Particule
 
 // Constructors

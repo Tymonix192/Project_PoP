@@ -28,9 +28,9 @@ class Jeu {
 private:
     //attributs
     unsigned int score;           
-    std::vector<std::unique_ptr<Mobile>> mobiles;// Polymorphic collection
-    std::vector<size_t> particuleIndices;// Indices of particles in the mobiles vector
-    std::vector<size_t> faiseurIndices;// Indices of makers in the mobiles vector
+    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
+    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
+    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
     Chaine chaine;   
     std::string lastLoadedFile;                   
     
@@ -68,9 +68,14 @@ private:
                                    unsigned int totalArticulations,
                                    ReadState& nextState);
     int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 
-
-                        int totalArticulations, ReadState& nextState); 
-    //clears all data in the game
+                        int totalArticulations, ReadState& nextState);
+                         
+    // Update helpers
+    void updateParticules();
+    void updateFaiseurs();
+    void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, std::vector<size_t>& entityIndices);
+    
+    // Data management
     void clearGameData();
     
 public:
