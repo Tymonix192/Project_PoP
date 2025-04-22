@@ -164,6 +164,18 @@ void Particule::print() const {
          << "Counter: " << counter << endl;
 }
 
+int Particule::draw() const {
+    // Draw the particle as a circle
+    Circle circle(this->position, 1);
+    
+    // Draw the circle using graphic library
+    graphic_draw_circle(circle.get_center().x, circle.get_center().y, 
+                        circle.get_radius(), Color::GREEN);
+    
+    return 0;
+}
+
+
 // Faiseur
 
 // Constructors

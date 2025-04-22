@@ -603,4 +603,16 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
             mobiles.erase(mobiles.begin() + mobileIdx);
         }
     }
+    int Jeu::getStatus() const{
+        return this->status;
+    }
+
+    int Jeu::draw() const{
+        // Draw the game state
+        for (const auto& mobile : mobiles) {
+            mobile->draw();
+        }
+        chaine.draw();
+        return 0;
+    }
 }

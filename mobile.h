@@ -33,26 +33,16 @@ public:
     void setAlpha(double a);
     void setDisplacement(double d);
     
-<<<<<<< HEAD
     // Pure virtual methods
-=======
-    // Common functionality
-    S2d calculateNextPosition() const;
-    
-    // Pure virtual methods
-    virtual void move() = 0; // Each entity type implements its own movement logic
->>>>>>> github/Edo
     virtual bool isValid() const = 0;
     virtual bool isInArena() const = 0;
     virtual void print() const = 0;  // For testing/debugging
     
-<<<<<<< HEAD
     // Additional virtual methods for type identification
-=======
-    // Type identification
->>>>>>> github/Edo
     virtual bool isParticule() const { return false; }
     virtual bool isFaiseur() const { return false; }
+
+    virtual int draw() const { return 0; } // For drawing
 };
 
 class Particule : public Mobile {
@@ -71,19 +61,13 @@ public:
     void setCounter(unsigned int c);
     void incrementCounter();
 
-<<<<<<< HEAD
-=======
-    // Particle-specific behavior
-    void move() override;
-    bool shouldSplit() const;
-    void createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles) const;
-
->>>>>>> github/Edo
     // Overridden methods
     bool isValid() const override;
     bool isInArena() const override;
     void print() const override;
     bool isParticule() const override { return true; }
+    
+    int draw() const override; // For drawing
 };
 
 class Faiseur : public Mobile {
@@ -108,7 +92,6 @@ public:
     
     // Faiseur-specific behavior
     void calculateElements();
-<<<<<<< HEAD
     
     // Overridden methods
     bool isValid() const override;
@@ -121,18 +104,8 @@ public:
     bool collidesWithPoint(const S2d& point) const;
     bool collidesWithFaiseur(const Faiseur& other, 
                             unsigned int thisId = 0, unsigned int otherId = 0) const;
-=======
-    void move() override;
-    bool collidesWithPoint(const S2d& point) const;
-    bool collidesWithFaiseur(const Faiseur& other, 
-                            unsigned int thisId = 0, unsigned int otherId = 0) const;
-    
-    // Overridden methods
-    bool isValid() const override;
-    bool isInArena() const override;
-    void print() const override;
-    bool isFaiseur() const override { return true; }
->>>>>>> github/Edo
+
+    int draw() const override; // For drawing
 };
 
 #endif

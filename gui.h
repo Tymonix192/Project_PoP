@@ -7,6 +7,17 @@
 #include <gtkmm.h>
 #include "jeu.h"
 
+struct Frame
+{
+	double xMin;
+	double xMax;
+	double yMin;
+	double yMax;
+	double asp;
+	int height;
+	int width;
+};
+
 class My_window : public Gtk::Window
 {
 public:
@@ -24,7 +35,7 @@ private:
     Gtk::DrawingArea drawing;
     std::string previous_file_name;
 	// ajouter un attribut pour accéder au jeu (instance ou pointeur)
-	My_window *window;
+	Jeu jeu;
 
     void set_commands();
 

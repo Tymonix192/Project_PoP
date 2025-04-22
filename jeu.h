@@ -12,6 +12,12 @@
 #include "message.h"
 #include "tools.h"
 
+
+enum Status {
+    ONGOING,
+    WON,
+    LOST
+};
 /** 
  * This class is responsible for:
  * - Reading configuration files
@@ -22,15 +28,9 @@ class Jeu {
 private:
     //attributs
     unsigned int score;           
-<<<<<<< HEAD
     std::vector<std::unique_ptr<Mobile>> mobiles;// Polymorphic collection
     std::vector<size_t> particuleIndices;// Indices of particles in the mobiles vector
     std::vector<size_t> faiseurIndices;// Indices of makers in the mobiles vector
-=======
-    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
-    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
-    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
->>>>>>> github/Edo
     Chaine chaine;   
     std::string lastLoadedFile;                   
     
@@ -46,12 +46,6 @@ private:
         READ_MODE,
         READ_COMPLETE
     };
-    enum Status {
-        ONGOING,
-        WON,
-        LOST
-    };
-<<<<<<< HEAD
     //Methods
     // Helper methods for entity access
     Particule* getParticule(size_t index);
@@ -59,15 +53,6 @@ private:
     // Validates any remaining global constraints
     bool validateGlobalConstraints() const;
     // Reads next non-empty, non-comment line
-=======
-    
-    // Helper methods for entity access
-    Particule* getParticule(size_t index);
-    Faiseur* getFaiseur(size_t index);
-    std::vector<Faiseur*> getAllFaiseurs();
-    
-    // File reading helpers
->>>>>>> github/Edo
     bool readNextLine(std::ifstream& file, std::string& line);
     int handleScoreState(const std::string& line, ReadState& nextState); 
     int handleParticleCountState(const std::string& line, ReadState& nextState);  
@@ -83,29 +68,9 @@ private:
                                    unsigned int totalArticulations,
                                    ReadState& nextState);
     int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 
-<<<<<<< HEAD
+
                         int totalArticulations, ReadState& nextState); 
     //clears all data in the game
-    void clearGameData();
-public:
-    //constructor
-    Jeu();
-
-    bool lecture(const std::string& filename);
-
-    bool saveToFile(const std::string& filename);
-    
-    bool restart();
-=======
-                        int totalArticulations, ReadState& nextState);
-                         
-    // Update helpers
-    void updateParticules();
-    void updateFaiseurs();
-    void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, std::vector<size_t>& entityIndices);
->>>>>>> github/Edo
-    
-    // Data management
     void clearGameData();
     
 public:
@@ -124,6 +89,8 @@ public:
     size_t getNbFaiseurs() const;
     size_t getNbArticulations() const;
     std::string getMode() const;
+    int getStatus() const;
+    int draw() const;
 };
 
 #endif
