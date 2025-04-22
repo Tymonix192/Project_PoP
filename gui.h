@@ -28,6 +28,7 @@ private:
     Gtk::Frame command_frame, info_frame;
     Gtk::Grid info_grid;
     bool activated;
+    uint counter;
     sigc::connection loop_conn;
     std::array<Gtk::Button, 6> buttons;
     std::array<Gtk::CheckButton, 2> checks;

@@ -40,7 +40,8 @@ My_window::My_window(string file_name, Jeu jeu)
                  Gtk::Label("faiseurs:"),
                  Gtk::Label("articulations:")}),
       previous_file_name(file_name),
-      this->jeu(jeu)
+      this->jeu(jeu),
+      counter(0),
       
 {
     set_title("Linked-Crossing Challenge");
@@ -277,6 +278,7 @@ void My_window::update()
 	jeu.update();
     update_infos();
     drawing.queue_draw();
+    counter += 1;
 
     if(jeu.getStatus() != ONGOING)
     {

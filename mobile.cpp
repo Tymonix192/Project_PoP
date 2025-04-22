@@ -364,3 +364,16 @@ void Faiseur::print() const {
         << endl;
     }
 }
+
+int Faiseur::draw() const {
+    // Draw the faiseur as a series of circles
+    for (const S2d& element : elements) {
+        Circle circle(element, radius);
+        
+        // Draw the circle using graphic library
+        graphic_draw_circle(circle.get_center().x, circle.get_center().y, 
+                            circle.get_radius(), Color::BLUE);
+    }
+    
+    return 0;
+}

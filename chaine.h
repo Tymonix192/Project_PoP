@@ -6,6 +6,7 @@
 #include <string>
 #include "tools.h"  
 #include "message.h"
+#include "mobile.h"
 
 class Chaine {
 private:
