@@ -12,6 +12,13 @@
 #include "message.h"
 #include "tools.h"
 
+// Define Status enum outside of the class so it can be used as a return type
+enum Status {
+    ONGOING,
+    WON,
+    LOST
+};
+
 /** 
  * This class is responsible for:
  * - Reading configuration files
@@ -20,7 +27,6 @@
  */
 class Jeu {
 private:
-
     enum ReadState {
         READ_SCORE,
         READ_PARTICULE_COUNT,
@@ -31,11 +37,6 @@ private:
         READ_ARTICULATION_DATA,
         READ_MODE,
         READ_COMPLETE
-    };
-    enum Status {
-        ONGOING,
-        WON,
-        LOST
     };
 
     //attributs
@@ -106,7 +107,7 @@ public:
     bool save(const std::string& filename);
     bool set_jeu(const std::string& filename);
     void clear();
-    void draw();
+    void draw() const;
     void set_mode(Mode mode);
     unsigned int get_score() const;
     size_t get_particle_count() const;

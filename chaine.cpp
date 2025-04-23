@@ -76,12 +76,15 @@ bool Chaine::is_in(Circle arena) {
 }
 
 void Chaine::draw() const {
-    vector<S2d> *art = getArticulations();
-    for(int i = 0; i<sizeof(*art)/sizeof(S2d)-1; i++){
-        (*art)[i].draw(Color::RED);
-        if(i>0){
-            draw_line(*art[i-1], *art[i], Color::RED)
-            }
+    for (size_t i = 0; i < articulations.size(); i++) {
+        Point p;
+        p.set_center(articulations[i]);
+        p.draw(RED);
+        
+        if (i > 0) {
+            Point prev;
+            prev.set_center(articulations[i-1]);
+            draw_line(prev, p, RED);
         }
     }
-    
+} 
