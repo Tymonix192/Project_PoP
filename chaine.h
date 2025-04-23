@@ -6,7 +6,6 @@
 #include <string>
 #include "tools.h"  
 #include "message.h"
-#include "mobile.h"
 
 class Chaine {
 private:
@@ -24,7 +23,6 @@ public:
     bool checkCollisionsWithFaiseurs(const std::vector<Faiseur*>& faiseurs);
     void print() const; // debug feature
     bool is_in(Circle arena = {ORIGIN, 0});
-    void draw() const;
 };
 
 #endif 

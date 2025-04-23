@@ -161,17 +161,6 @@ void Particule::print() const {
          << "Counter: " << counter << endl;
 }
 
-int Particule::draw() const {
-    // Draw the particle as a circle
-    Point point;
-    point.set_center(this->position);
-
-    point.draw();
-    
-    return 0;
-}
-
-
 // Faiseur
 
 // Constructors
@@ -359,16 +348,4 @@ void Faiseur::print() const {
         cout << "  " << i << ": (" << elements[i].x << ", " << elements[i].y << ")" 
         << endl;
     }
-}
-
-int Faiseur::draw() const {
-    // Draw the faiseur as a series of circles
-    for (const S2d& element : elements) {
-        Circle circle(element, radius);
-        
-        // Draw the circle using graphic library
-        circle.draw();
-    }
-    
-    return 0;
 }

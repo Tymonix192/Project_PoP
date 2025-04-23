@@ -12,12 +12,6 @@
 #include "message.h"
 #include "tools.h"
 
-
-enum Status {
-    ONGOING,
-    WON,
-    LOST
-};
 /** 
  * This class is responsible for:
  * - Reading configuration files
@@ -33,8 +27,7 @@ private:
     std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
     Chaine chaine;   
     std::string lastLoadedFile;                   
-    Status status; // Game status (ongoing, won, lost)
-
+    
     // States for the file reading state machine
     enum ReadState {
         READ_SCORE,
@@ -47,14 +40,18 @@ private:
         READ_MODE,
         READ_COMPLETE
     };
-    //Methods
+    enum Status {
+        ONGOING,
+        WON,
+        LOST
+    };
+    
     // Helper methods for entity access
     Particule* getParticule(size_t index);
     Faiseur* getFaiseur(size_t index);
     std::vector<Faiseur*> getAllFaiseurs();
-    // Validates any remaining global constraints
-    bool validateGlobalConstraints() const;
-    // Reads next non-empty, non-comment line
+    
+    // File reading helpers
     bool readNextLine(std::ifstream& file, std::string& line);
     int handleScoreState(const std::string& line, ReadState& nextState); 
     int handleParticleCountState(const std::string& line, ReadState& nextState);  
@@ -96,8 +93,6 @@ public:
     size_t getNbFaiseurs() const;
     size_t getNbArticulations() const;
     std::string getMode() const;
-    int getStatus() const;
-    void draw() const;
 };
 
 #endif

@@ -28,7 +28,6 @@ public:
     double getAlpha() const;
     double getDisplacement() const;
     
-    
     // Mutators
     void setPosition(const S2d& pos);
     void setAlpha(double a);
@@ -46,8 +45,6 @@ public:
     // Type identification
     virtual bool isParticule() const { return false; }
     virtual bool isFaiseur() const { return false; }
-
-    virtual int draw() const { return 0; } // For drawing
 };
 
 class Particule : public Mobile {
@@ -76,8 +73,6 @@ public:
     bool isInArena() const override;
     void print() const override;
     bool isParticule() const override { return true; }
-
-    int draw() const override; // For drawing
 };
 
 class Faiseur : public Mobile {
@@ -112,8 +107,6 @@ public:
     bool isInArena() const override;
     void print() const override;
     bool isFaiseur() const override { return true; }
-    int draw() const override; // For drawing
 };
-
 
 #endif

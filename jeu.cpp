@@ -578,7 +578,8 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
     std::vector<size_t> sortedIndices = indicesToRemove;
     std::sort(sortedIndices.begin(), sortedIndices.end(), std::greater<size_t>());
     
-    for (size_t idx : sortedIndices) {
+    for (size_t i = 0; i < sortedIndices.size(); ++i) {
+        size_t idx = sortedIndices[i];
         if (idx >= entityIndices.size()) continue;
         
         size_t mobileIdx = entityIndices[idx];
@@ -587,14 +588,15 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
         entityIndices.erase(entityIndices.begin() + idx);
         
         // Update all indices greater than the removed one
-        for (size_t& pIdx : particuleIndices) {
-            if (pIdx > mobileIdx) {
-                pIdx--;
+        for (size_t j = 0; j < particuleIndices.size(); ++j) {
+            if (particuleIndices[j] > mobileIdx) {
+                particuleIndices[j]--;
             }
         }
-        for (size_t& fIdx : faiseurIndices) {
-            if (fIdx > mobileIdx) {
-                fIdx--;
+        
+        for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+            if (faiseurIndices[j] > mobileIdx) {
+                faiseurIndices[j]--;
             }
         }
         
@@ -603,15 +605,4 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
             mobiles.erase(mobiles.begin() + mobileIdx);
         }
     }
-}
-int Jeu::getStatus() const {
-    return this->status;
-}
-
-void Jeu::draw() const{
-    // Draw the game state
-    for (const auto& mobile : mobiles) {
-        mobile->draw();
-    }
-    chaine.draw();
 }
