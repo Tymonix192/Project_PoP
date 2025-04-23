@@ -125,7 +125,13 @@ void Particule::move() {
     // Update position
     setPosition(nextPos);
 }
-
+int Particule::draw() const {
+    // Draw the particle as a circle
+    Point point;
+    point.set_center(this->position);
+    point.draw(CYAN);
+    return 0;
+}
 // Validation
 bool Particule::isInArena() const {
     return distance(position, ORIGIN) <= r_max;
@@ -263,6 +269,16 @@ void Faiseur::move() {
     // Update position and recalculate elements
     setPosition(nextPos);
     calculateElements();
+}
+
+int Faiseur::draw() const {
+    // Draw each element of the faiseur as a blue circle
+    for (const S2d& element : elements) {
+        Circle elementCircle(element, radius);
+        elementCircle.draw(BLUE);
+    }
+    
+    return 0;
 }
 
 // Validation

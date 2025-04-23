@@ -20,15 +20,7 @@
  */
 class Jeu {
 private:
-    //attributs
-    unsigned int score;           
-    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
-    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
-    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
-    Chaine chaine;   
-    std::string lastLoadedFile;                   
-    
-    // States for the file reading state machine
+
     enum ReadState {
         READ_SCORE,
         READ_PARTICULE_COUNT,
@@ -45,6 +37,16 @@ private:
         WON,
         LOST
     };
+
+    //attributs
+    unsigned int score;           
+    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
+    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
+    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
+    Chaine chaine;   
+    std::string lastLoadedFile;   
+    Status status;                
+
     
     // Helper methods for entity access
     Particule* getParticule(size_t index);

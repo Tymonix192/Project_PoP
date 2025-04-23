@@ -47,7 +47,7 @@ std::string Chaine::get_mode() const {
     return _mode;
 }
 
-int Chaine::set_mode(std::string mode) {
+int Chaine::set_mode(std::string mode = "CONSTRUCTION") {
     if(mode != "CONSTRUCTION" && mode != "GUIDAGE") return -1;
     _mode = mode;
     return 0;
@@ -74,3 +74,14 @@ bool Chaine::is_in(Circle arena) {
     }
     return true;
 }
+
+void Chaine::draw() const {
+    vector<S2d> *art = getArticulations();
+    for(int i = 0; i<sizeof(*art)/sizeof(S2d)-1; i++){
+        (*art)[i].draw(Color::RED);
+        if(i>0){
+            draw_line(*art[i-1], *art[i], Color::RED)
+            }
+        }
+    }
+    

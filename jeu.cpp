@@ -8,7 +8,7 @@
 #include <algorithm>
 
 // Constructor initializes the game state
-Jeu::Jeu() : score(0), lastLoadedFile("") {
+Jeu::Jeu() : score(0), lastLoadedFile(""), status(ONGOING) {
     // All other containers are initialized by their default constructors
 }
 
@@ -205,7 +205,7 @@ int Jeu::handleArticulationDataState(const std::string& line,
         std::cerr << "Error parsing articulation data" << std::endl;
         return -1;
     }
-    
+
     S2d point = {x, y};
     // Check if articulation is inside arena
     if (distance(point, ORIGIN) >= r_max) {
@@ -647,4 +647,16 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
             mobiles.erase(mobiles.begin() + mobileIdx);
         }
     }
+}
+
+Status Jeu::getStatus() const {
+    return this->status;
+}
+
+void Jeu::draw() const{
+    // Draw the game state
+    for (const auto& mobile : mobiles) {
+        mobile->draw();
+    }
+    chaine.draw();
 }
