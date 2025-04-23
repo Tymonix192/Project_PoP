@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #include "mobile.h"
 #include "constantes.h"
 #include "message.h"
@@ -7,37 +8,33 @@
 #include <cmath>
 using namespace std;
 
-//Particle class
-// Constructor
-Particule::Particule(const S2d& pos, double alpha, double disp, unsigned int count) :
-    position(pos), alpha(alpha), displacement(disp), counter(count) {}
+//Mobile
 
-Particule::Particule() :
-    position(), alpha(0.0), displacement(0.0), counter(0) {}
+// Constructors
+Mobile::Mobile(const S2d& pos, double alpha, double disp) :
+    position(pos), alpha(alpha), displacement(disp) {}
+
+Mobile::Mobile() : position(), alpha(0.0), displacement(0.0) {}
 
 // Accessors
-S2d Particule::getPosition() const {
+S2d Mobile::getPosition() const {
     return position;
 }
 
-double Particule::getAlpha() const {
+double Mobile::getAlpha() const {
     return alpha;
 }
 
-double Particule::getDisplacement() const {
+double Mobile::getDisplacement() const {
     return displacement;
 }
 
-unsigned int Particule::getCounter() const {
-    return counter;
-}
-
 // Mutators
-void Particule::setPosition(const S2d& pos) {
+void Mobile::setPosition(const S2d& pos) {
     position = pos;
 }
 
-void Particule::setAlpha(double a) {
+void Mobile::setAlpha(double a) {
     //alpha is within [-π, π]
     while (a > M_PI)
         a -= 2 * M_PI;
@@ -46,10 +43,32 @@ void Particule::setAlpha(double a) {
     alpha = a;
 }
 
-void Particule::setDisplacement(double d) {
+void Mobile::setDisplacement(double d) {
     displacement = d;
 }
 
+// Calculate next position
+S2d Mobile::calculateNextPosition() const {
+    return {
+        position.x + displacement * cos(alpha),
+        position.y + displacement * sin(alpha)
+    };
+}
+
+//Particule
+
+// Constructors
+Particule::Particule(const S2d& pos, double alpha, double disp, unsigned int count) :
+    Mobile(pos, alpha, disp), counter(count) {}
+
+Particule::Particule() : Mobile(), counter(0) {}
+
+// Accessors
+unsigned int Particule::getCounter() const {
+    return counter;
+}
+
+// Mutators
 void Particule::setCounter(unsigned int c) {
     counter = c;
 }
@@ -58,9 +77,57 @@ void Particule::incrementCounter() {
     counter++;
 }
 
+// Check if particle should split
+bool Particule::shouldSplit() const {
+    return counter >= time_to_split;
+}
+
+// Create two new particles from this one
+void Particule::createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles) const {
+    // First new particle
+    auto p1 = std::make_unique<Particule>(
+        position,
+        alpha + delta_split,
+        displacement * coef_split
+    );
+    
+    // Second new particle
+    auto p2 = std::make_unique<Particule>(
+        position,
+        alpha - delta_split,
+        displacement * coef_split
+    );
+    
+    // Add both to the provided vector
+    newParticles.push_back(std::move(p1));
+    newParticles.push_back(std::move(p2));
+}
+
+// Implementation of move for particles
+void Particule::move() {
+    S2d nextPos = calculateNextPosition();
+    
+    // Check if would move outside arena
+    double distFromOrigin = distance(nextPos, ORIGIN);
+    if (distFromOrigin > r_max) {
+        // Calculate bounce
+        Vector moveVector;
+        moveVector.set_coordinates(position, nextPos);
+        double newAlpha = moveVector.bounce();
+        
+        // Update angle
+        setAlpha(newAlpha);
+        
+        // Recalculate position with new angle
+        nextPos = calculateNextPosition();
+    }
+    
+    // Update position
+    setPosition(nextPos);
+}
+
 // Validation
 bool Particule::isInArena() const {
-    Circle arenaCircle(ORIGIN, r_max);
     return distance(position, ORIGIN) <= r_max;
 }
 
@@ -89,39 +156,36 @@ bool Particule::isValid() const {
 // Debug
 void Particule::print() const {
     cout << "Particule: Position(" << position.x << ", " << position.y << "), "
-              << "Alpha: " << alpha << ", "
-              << "Displacement: " << displacement << ", "
-              << "Counter: " << counter << endl;
+         << "Alpha: " << alpha << ", "
+         << "Displacement: " << displacement << ", "
+         << "Counter: " << counter << endl;
+}
+
+int Particule::draw() const {
+    // Draw the particle as a circle
+    Point point;
+    point.set_center(this->position);
+
+    point.draw();
+    
+    return 0;
 }
 
 
-
-//class Faiseur
+// Faiseur
 
 // Constructors
 Faiseur::Faiseur() :
-    position(), alpha(0.0), displacement(0.0), radius(r_min_faiseur), numElements(1) {
+    Mobile(), radius(r_min_faiseur), numElements(1) {
     calculateElements();
 }
 
 Faiseur::Faiseur(const S2d& pos, double alpha, double disp, double rad, unsigned int nbe) :
-    position(pos), alpha(alpha), displacement(disp), radius(rad), numElements(nbe) {
+    Mobile(pos, alpha, disp), radius(rad), numElements(nbe) {
     calculateElements();
 }
 
 // Accessors
-S2d Faiseur::getPosition() const {
-    return position;
-}
-
-double Faiseur::getAlpha() const {
-    return alpha;
-}
-
-double Faiseur::getDisplacement() const {
-    return displacement;
-}
-
 double Faiseur::getRadius() const {
     return radius;
 }
@@ -135,25 +199,6 @@ const std::vector<S2d>& Faiseur::getElements() const {
 }
 
 // Mutators
-void Faiseur::setPosition(const S2d& pos) {
-    position = pos;
-    calculateElements();
-}
-
-void Faiseur::setAlpha(double a) {
-    while (a > M_PI)
-        a -= 2 * M_PI;
-    while (a < -M_PI)
-        a += 2 * M_PI;
-    alpha = a;
-    calculateElements();
-}
-
-void Faiseur::setDisplacement(double d) {
-    displacement = d;
-    calculateElements();
-}
-
 void Faiseur::setRadius(double r) {
     radius = r;
 }
@@ -205,6 +250,32 @@ void Faiseur::calculateElements() {
     }
 }
 
+// Implementation of move for faiseurs
+void Faiseur::move() {
+    S2d nextPos = calculateNextPosition();
+    
+    // Check if would move outside arena
+    Circle arenaCircle(ORIGIN, r_max);
+    Circle faiseurCircle(nextPos, radius);
+    
+    if (!faiseurCircle.check_inside(arenaCircle)) {
+        // Calculate bounce
+        Vector moveVector;
+        moveVector.set_coordinates(position, nextPos);
+        double newAlpha = moveVector.bounce();
+        
+        // Update angle
+        setAlpha(newAlpha);
+        
+        // Recalculate position with new angle
+        nextPos = calculateNextPosition();
+    }
+    
+    // Update position and recalculate elements
+    setPosition(nextPos);
+    calculateElements();
+}
+
 // Validation
 bool Faiseur::isInArena() const {
     Circle arenaCircle(ORIGIN, r_max);
@@ -244,19 +315,20 @@ bool Faiseur::isValid() const {
 }
 
 // Collision detection
-bool Faiseur::collidesWithArena() const {
-    Circle arenaCircle(ORIGIN, r_max);
-    // Check if any element collides with the arena boundary
+bool Faiseur::collidesWithPoint(const S2d& point) const {
     for (const S2d& element : elements) {
-        Circle elementCircle(element, radius);
-        if (!elementCircle.check_inside(arenaCircle)) {
+        double dist = distance(point, element);
+        
+        // Point is inside element
+        if (dist < radius) {
             return true;
         }
     }
     return false;
 }
 
-bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0, unsigned int otherId = 0) const {
+bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId, 
+                                unsigned int otherId) const {
     for (size_t i = 0; i < elements.size(); ++i) {
         const S2d& elem1 = elements[i];
         Circle circle1(elem1, radius);
@@ -274,28 +346,29 @@ bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0,
     return false;
 }
 
-bool Faiseur::collidesWithPoint(const S2d& point) const {
-    for (const S2d& element : elements) {
-        double dist = distance(point, element);
-        
-        // Point is inside element
-        if (dist < radius) {
-            return true;
-        }
-    }
-    return false;
-}
-
 // Debug
 void Faiseur::print() const {
     cout << "Faiseur: Head(" << position.x << ", " << position.y << "), "
-              << "Alpha: " << alpha << ", "
-              << "Displacement: " << displacement << ", "
-              << "Radius: " << radius << ", "
-              << "NumElements: " << numElements << endl;
+         << "Alpha: " << alpha << ", "
+         << "Displacement: " << displacement << ", "
+         << "Radius: " << radius << ", "
+         << "NumElements: " << numElements << endl;
     
     cout << "Elements: " << endl;
     for (size_t i = 0; i < elements.size(); ++i) {
-        cout << "  " << i << ": (" << elements[i].x << ", " << elements[i].y << ")" << endl;
+        cout << "  " << i << ": (" << elements[i].x << ", " << elements[i].y << ")" 
+        << endl;
     }
+}
+
+int Faiseur::draw() const {
+    // Draw the faiseur as a series of circles
+    for (const S2d& element : elements) {
+        Circle circle(element, radius);
+        
+        // Draw the circle using graphic library
+        circle.draw();
+    }
+    
+    return 0;
 }

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include "graphic.h"
 
 constexpr float EPSIL_ZERO = 0.0;
 
@@ -10,19 +11,17 @@ struct S2d {double x=0; double y=0;};
 
 #define ORIGIN S2d{0,0}
 
-double distance(S2d point1, S2d point2);
-bool circles_intersect(Circle circle_1, Circle circle_);
-Circle* circles_inside(Circle* circle_1, Circle* circle_2); 
 // returns a pointer to the inside circle.
 // If the circles arent inside each other, returns NULL
 
 
 class Point{
     public:
-        Point::Point();
+        Point() = default;
         virtual int set_center(S2d coordinates);
         virtual S2d get_center();
         double distance_org(); // returns distance from origin
+        virtual int draw(Color color = Color::GREEN);
     private:
         S2d _point;
         
@@ -31,14 +30,15 @@ class Point{
 
 class Circle: public Point{
     public:
-        Circle();
-        Circle::Circle(S2d cent, double rad);
+        Circle() = default;
+        Circle(S2d cent, double rad);
         int set_radius(double r);
         double get_radius();
         bool check_inside(Circle circle);
         bool check_intersect(Circle other_circle);
         int set_center(S2d coordinates);
         S2d get_center();
+        int draw(Color color = Color::BLUE);
     private:
         double _radius;
         S2d _center;
@@ -47,7 +47,7 @@ class Circle: public Point{
 
 class Vector{
     public:
-        int set_coordinates(S2d start, S2d end);
+    int set_coordinates(S2d start, S2d end);
         S2d get_start();
         S2d get_end();
         int set_angle(double angle);
@@ -67,6 +67,11 @@ class Vector{
         S2d _coordinate_start;
         S2d _coordinate_end;
 
-};
+    };
+
+bool circles_intersect(Circle circle_1, Circle circle_);
+Circle* circles_inside(Circle* circle_1, Circle* circle_2); 
+double distance(S2d point1, S2d point2);
+void draw_line(Point point_1, Point point_2, Color color) const;
 
 #endif

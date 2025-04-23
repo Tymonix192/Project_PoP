@@ -1,15 +1,36 @@
+//contributors: 399554 397957
 #include "jeu.h"
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 // Constructor initializes the game state
-Jeu::Jeu() : score(0) {
+Jeu::Jeu() : score(0), lastLoadedFile("") {
     // All other containers are initialized by their default constructors
 }
 
+// Helper methods for type-safe entity access
+Particule* Jeu::getParticule(size_t index) {
+    if (index >= particuleIndices.size()) return nullptr;
+    return static_cast<Particule*>(mobiles[particuleIndices[index]].get());
+}
+
+Faiseur* Jeu::getFaiseur(size_t index) {
+    if (index >= faiseurIndices.size()) return nullptr;
+    return static_cast<Faiseur*>(mobiles[faiseurIndices[index]].get());
+}
+
+std::vector<Faiseur*> Jeu::getAllFaiseurs() {
+    std::vector<Faiseur*> result;
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        Faiseur* f = getFaiseur(i);
+        if (f) result.push_back(f);
+    }
+    return result;
+}
 
 bool Jeu::readNextLine(std::ifstream& file, std::string& line) {
     while (getline(file >> std::ws, line)) {
@@ -76,15 +97,16 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
         return -1;
     }
     
-    // Create particle and use its validation methods
-    Particule p({x, y}, alpha, displacement, counter);
+    // Create particle
+    std::unique_ptr<Particule> particle(new Particule(S2d{x, y}, alpha, displacement, counter));
 
-    if (!p.isValid()) {
+    if (!particle->isValid()) {
         return -1;
     }
     
-    // Add valid particle
-    particules.push_back(p);
+    // Add valid particle and store its index
+    particuleIndices.push_back(mobiles.size());
+    mobiles.push_back(std::move(particle));
     
     // Check if we've read all particles
     particleIndex++;
@@ -94,7 +116,6 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
     
     return 0;
 }
-
 
 int Jeu::handleFaiseurCountState(const std::string& line, ReadState& nextState) {
     unsigned int nbFais;
@@ -126,21 +147,24 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
         return -1;
     }
     
-    // Create maker and use its validation methods
-    Faiseur f({x, y}, alpha, displacement, radius, nbe);
-    if (!f.isValid()) {
+    // Create maker
+    std::unique_ptr<Faiseur> maker(new Faiseur(S2d{x, y}, alpha, displacement, radius, nbe));
+    if (!maker->isValid()) {
         return -1;
     }
     
     // Check for collisions with existing makers
-    for (size_t j = 0; j < faiseurs.size(); ++j) {
-        if (f.collidesWithFaiseur(faiseurs[j], faiseurIndex, j)) {
+    for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+        Faiseur* existingMaker = getFaiseur(j);
+        if (maker->collidesWithFaiseur(*existingMaker, faiseurIndex, j)) {
             return -1;
         }
     }
     
-    // Add valid maker
-    faiseurs.push_back(f);
+    // Add valid maker and store its index
+    faiseurIndices.push_back(mobiles.size());
+    mobiles.push_back(std::move(maker));
+    
     // Check if we've read all makers
     faiseurIndex++;
     if (faiseurIndex >= totalFaiseurs) {
@@ -169,8 +193,10 @@ int Jeu::handleArticulationCountState(const std::string& line, ReadState& nextSt
     return nbArt; // Return count as a positive number
 }
 
-int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& articulations,
-                                   unsigned int& articulationIndex, unsigned int totalArticulations,
+int Jeu::handleArticulationDataState(const std::string& line,
+                                std::vector<S2d>& articulations,
+                                   unsigned int& articulationIndex, 
+                                   unsigned int totalArticulations,
                                    ReadState& nextState) {
     double x, y;
     std::istringstream iss(line);
@@ -182,16 +208,12 @@ int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& 
     
     // Use the tools module to check if the point is inside the arena
     S2d point = {x, y};
-    if (distance(point, ORIGIN) >= r_max) {
-        std::cout << message::articulation_outside(x, y);
-        return -1;
-    }
-    
     articulations.push_back(point);
     
     // Validate distance between consecutive articulations
     if (articulationIndex > 0) {
-        double dist = distance(articulations[articulationIndex], articulations[articulationIndex-1]);
+        double dist = distance(articulations[articulationIndex], 
+                                articulations[articulationIndex-1]);
         if (dist > r_capture) {
             std::cout << message::chaine_max_distance(articulationIndex-1);
             return -1;
@@ -199,8 +221,9 @@ int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& 
     }
     
     // Check for collisions with makers
-    for (size_t j = 0; j < faiseurs.size(); ++j) {
-        if (faiseurs[j].collidesWithPoint(point)) {
+    for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+        Faiseur* maker = getFaiseur(j);
+        if (maker->collidesWithPoint(point)) {
             std::cout << message::chaine_articulation_collision(articulationIndex, j, 0);
             return -1;
         }
@@ -216,7 +239,7 @@ int Jeu::handleArticulationDataState(const std::string& line, std::vector<S2d>& 
 }
 
 int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articulations,
-                       unsigned int totalArticulations, ReadState& nextState) {
+                        int totalArticulations, ReadState& nextState) {
     std::string mode;
     std::istringstream iss(line);
     
@@ -233,11 +256,9 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     
     // Create the chain with articulations and mode
     if (totalArticulations > 0) {
-        std::ifstream dummyFile; // Using a dummy file since we already parsed the articulations
-        int result = chaine.read(totalArticulations, dummyFile, r_max, r_capture);
-        if (result < 0) {
-            return -1;
-        }
+        int result = chaine.create_chain(totalArticulations, articulations, 
+                                        r_max, r_capture);
+        if(result < 0) return -1;
         chaine.set_mode(mode);
     }
     
@@ -245,16 +266,22 @@ int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articu
     return 0;
 }
 
-int Jeu::lecture(const std::string& filename) {
+void Jeu::clearGameData() {
+    // Clear all game data structures
+    mobiles.clear();
+    particuleIndices.clear();
+    faiseurIndices.clear();
+    // The chaine class handles its own data clearing
+}
+
+bool Jeu::lecture(const std::string& filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Cannot open file: " << filename << std::endl;
-        return -1;
+        return false;
     }
     
-    // Clear existing data
-    particules.clear();
-    faiseurs.clear();
+    clearGameData();
     
     ReadState state = READ_SCORE;
     std::string line;
@@ -268,66 +295,151 @@ int Jeu::lecture(const std::string& filename) {
         // Read the next significant line
         if (!readNextLine(file, line)) {
             std::cerr << "Unexpected end of file in state " << state << std::endl;
-            return -1;
+            clearGameData();
+            return false;
         }
         // Handle the current state
         switch (state) {
             case READ_SCORE:
                 result = handleScoreState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_PARTICULE_COUNT:
                 result = handleParticleCountState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 nbPart = result;
                 particleIndex = 0;
                 break;
                 
             case READ_PARTICULE_DATA:
                 result = handleParticleDataState(line, particleIndex, nbPart, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_FAISEUR_COUNT:
                 result = handleFaiseurCountState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 nbFais = result;
                 faiseurIndex = 0;
                 break;
                 
             case READ_FAISEUR_DATA:
                 result = handleFaiseurDataState(line, faiseurIndex, nbFais, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_ARTICULATION_COUNT:
                 result = handleArticulationCountState(line, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 nbArt = result;
                 articulationIndex = 0;
                 articulations.clear();
                 break;
                 
             case READ_ARTICULATION_DATA:
-                result = handleArticulationDataState(line, articulations, articulationIndex, nbArt, state);
-                if (result < 0) return -1;
+                result = handleArticulationDataState(line, articulations, 
+                                            articulationIndex, nbArt, state);
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             case READ_MODE:
                 result = handleModeState(line, articulations, nbArt, state);
-                if (result < 0) return -1;
+                if (result < 0) {
+                    clearGameData();
+                    return false;
+                }
                 break;
                 
             default:
-                std::cerr << "Invalid state in file reading state machine" << std::endl;
-                return -1;
+                std::cerr << "Invalid state in file reading state machine" 
+                            << std::endl;
+                clearGameData();
+                return false;
         }
     }
     
+    // Save the filename for potential restart
+    lastLoadedFile = filename;
+    
     // Success message
     std::cout << message::success();
-    return 0;
+    return true;
+}
+
+bool Jeu::saveToFile(const std::string& filename) {
+    std::ofstream file(filename);
+    if (!file.is_open()) {
+        std::cerr << "Cannot open file for writing: " << filename << std::endl;
+        return false;
+    }
+    
+    // Write score
+    file << score << std::endl;
+
+    // Write particles
+    file << particuleIndices.size() << std::endl;
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        Particule* p = getParticule(i);
+        file << p->getPosition().x << " " 
+             << p->getPosition().y << " "
+             << p->getAlpha() << " " 
+             << p->getDisplacement() << " "
+             << p->getCounter() << std::endl;
+    }
+    
+    // Write makers (faiseurs)
+    file << faiseurIndices.size() << std::endl;
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        Faiseur* f = getFaiseur(i);
+        file << f->getPosition().x << " " 
+             << f->getPosition().y << " "
+             << f->getAlpha() << " " 
+             << f->getDisplacement() << " "
+             << f->getRadius() << " " 
+             << f->getNumElements() << std::endl;
+    }
+    
+    // Write chain articulations
+    const std::vector<S2d>& articulations = chaine.getArticulations();
+    file << articulations.size() << std::endl;
+    for (const S2d& art : articulations) {
+        file << art.x << " " << art.y << std::endl;
+    }
+    
+    // Write mode
+    file << chaine.get_mode() << std::endl;
+    
+    return true;
+}
+
+bool Jeu::restart() {
+    if (lastLoadedFile.empty()) {
+        std::cerr << "No previous file loaded to restart" << std::endl;
+        return false;
+    }
+    return lecture(lastLoadedFile);
 }
 
 unsigned int Jeu::getScore() const {
@@ -335,11 +447,11 @@ unsigned int Jeu::getScore() const {
 }
 
 size_t Jeu::getNbParticules() const {
-    return particules.size();
+    return particuleIndices.size();
 }
 
 size_t Jeu::getNbFaiseurs() const {
-    return faiseurs.size();
+    return faiseurIndices.size();
 }
 
 size_t Jeu::getNbArticulations() const {
@@ -350,3 +462,156 @@ std::string Jeu::getMode() const {
     return chaine.get_mode();
 }
 
+// Update
+
+bool Jeu::update() {
+    // Decrement score
+    if (score <= 0) {
+        return false; // Game over (failure)
+    }
+    score--;
+    
+    // Update all entities
+    updateParticules();
+    updateFaiseurs();
+    
+    // Check for collisions between chain and faiseurs
+    if (!chaine.getArticulations().empty()) {
+        chaine.checkCollisionsWithFaiseurs(getAllFaiseurs());
+    }
+    
+    return true; // Update successful
+}
+
+void Jeu::updateParticules() {
+    std::vector<size_t> particlesToRemove;
+    std::vector<std::unique_ptr<Particule>> newParticles;
+    
+    // Process particles - increment counters and handle splitting
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        Particule* p = getParticule(i);
+        if (!p) continue;
+        
+        // Increment counter
+        p->incrementCounter();
+        
+        // Check if particle should split or be destroyed
+        if (p->shouldSplit()) {
+            if (particuleIndices.size() + newParticles.size() >= nb_particule_max) {
+                // Maximum particles reached - destroy this particle
+                particlesToRemove.push_back(i);
+            } else {
+                // Create two new particles from the split
+                p->createSplitParticles(newParticles);
+                
+                // Mark original particle for removal
+                particlesToRemove.push_back(i);
+            }
+        }
+    }
+    
+    // Move existing particles (except those marked for removal)
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        if (std::find(particlesToRemove.begin(), particlesToRemove.end(), i) != particlesToRemove.end()) {
+            continue; // Skip particles marked for removal
+        }
+        
+        Particule* p = getParticule(i);
+        if (p) p->move(); // Delegate movement to the particle itself
+    }
+    
+    // Move and add new particles
+    for (auto& newParticle : newParticles) {
+        newParticle->move(); // Move the new particle
+        
+        // Add to game state
+        particuleIndices.push_back(mobiles.size());
+        mobiles.push_back(std::move(newParticle));
+    }
+    
+    // Remove particles marked for deletion
+    removeMarkedEntities(particlesToRemove, particuleIndices);
+}
+
+void Jeu::updateFaiseurs() {
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        Faiseur* f = getFaiseur(i);
+        if (!f) continue;
+        
+        // Check if faiseur can move (no collisions with other faiseurs)
+        bool canMove = true;
+        
+        for (size_t j = 0; j < faiseurIndices.size(); ++j) {
+            if (i == j) continue; // Skip self
+            
+            Faiseur* otherF = getFaiseur(j);
+            if (!otherF) continue;
+            
+            // Temporarily calculate next position
+            S2d currentPos = f->getPosition();
+            S2d nextPos = f->calculateNextPosition();
+            
+            // Temporarily set position to check collision
+            f->setPosition(nextPos);
+            
+            if (f->collidesWithFaiseur(*otherF, i, j)) {
+                canMove = false;
+                // Restore original position
+                f->setPosition(currentPos);
+                break;
+            }
+            
+            // Restore original position
+            f->setPosition(currentPos);
+        }
+        
+        // If no collisions with other faiseurs, move the faiseur
+        if (canMove) {
+            f->move(); // Delegate movement to the faiseur itself
+        }
+    }
+}
+
+void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
+                              std::vector<size_t>& entityIndices) {
+    // Sort indices in descending order to avoid index shifting issues
+    std::vector<size_t> sortedIndices = indicesToRemove;
+    std::sort(sortedIndices.begin(), sortedIndices.end(), std::greater<size_t>());
+    
+    for (size_t idx : sortedIndices) {
+        if (idx >= entityIndices.size()) continue;
+        
+        size_t mobileIdx = entityIndices[idx];
+        
+        // Remove from entityIndices
+        entityIndices.erase(entityIndices.begin() + idx);
+        
+        // Update all indices greater than the removed one
+        for (size_t& pIdx : particuleIndices) {
+            if (pIdx > mobileIdx) {
+                pIdx--;
+            }
+        }
+        for (size_t& fIdx : faiseurIndices) {
+            if (fIdx > mobileIdx) {
+                fIdx--;
+            }
+        }
+        
+        // Remove the mobile
+        if (mobileIdx < mobiles.size()) {
+            mobiles.erase(mobiles.begin() + mobileIdx);
+        }
+    }
+}
+int Jeu::getStatus() const {
+    return this->status;
+}
+
+void Jeu::draw() const{
+    // Draw the game state
+    for (const auto& mobile : mobiles) {
+        mobile->draw();
+    }
+    chaine.draw();
+}

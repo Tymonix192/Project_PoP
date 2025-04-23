@@ -1,95 +1,119 @@
+//contributors: 399554 397957
 #ifndef MOBILE_H
 #define MOBILE_H
 
 #include <string>
 #include <vector>
+#include <memory>
 #include "tools.h"
 using namespace std;
 
-class Particule {
-private:
-    S2d position;      
-    double alpha;      // Orientation in radians [-π, π]
-    double displacement; 
-    unsigned int counter;
-
-    bool isInArena() const;
+// Base class for mobile entities
+class Mobile {
+protected:
+    S2d position;
+    double alpha;
+    double displacement;
 
 public:
-    // Constructor
-    Particule(const S2d& pos, double alpha, double disp, unsigned int count = 0);
-
-    // Default constructor
-    Particule();
-
+    // Constructors
+    Mobile(const S2d& pos, double alpha, double disp);
+    Mobile(); // Default constructor
+    
+    // Virtual destructor for proper inheritance
+    virtual ~Mobile() = default;
+    
     // Accessors
     S2d getPosition() const;
     double getAlpha() const;
     double getDisplacement() const;
-    unsigned int getCounter() const;
-
+    
+    
     // Mutators
     void setPosition(const S2d& pos);
     void setAlpha(double a);
     void setDisplacement(double d);
+    
+    // Common functionality
+    S2d calculateNextPosition() const;
+    
+    // Pure virtual methods
+    virtual void move() = 0; // Each entity type implements its own movement logic
+    virtual bool isValid() const = 0;
+    virtual bool isInArena() const = 0;
+    virtual void print() const = 0;  // For testing/debugging
+    
+    // Type identification
+    virtual bool isParticule() const { return false; }
+    virtual bool isFaiseur() const { return false; }
+
+    virtual int draw() const { return 0; } // For drawing
+};
+
+class Particule : public Mobile {
+private:
+    unsigned int counter;
+
+public:
+    // Constructors
+    Particule(const S2d& pos, double alpha, double disp, unsigned int count = 0);
+    Particule(); // Default constructor
+
+    // Accessors
+    unsigned int getCounter() const;
+
+    // Mutators
     void setCounter(unsigned int c);
     void incrementCounter();
 
-    // Validation
-    // handles error message directly
-    bool isValid() const; 
+    // Particle-specific behavior
+    void move() override;
+    bool shouldSplit() const;
+    void createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles) const;
 
-    // Debug
-    void print() const;  // For testing/debugging
+    // Overridden methods
+    bool isValid() const override;
+    bool isInArena() const override;
+    void print() const override;
+    bool isParticule() const override { return true; }
+
+    int draw() const override; // For drawing
 };
 
-class Faiseur {
+class Faiseur : public Mobile {
 private:
-    S2d position;           // head element
-    double alpha;          
-    double displacement;   
-    double radius;     
+    double radius;
     unsigned int numElements; // Number of elements in the maker
     vector<S2d> elements; // Positions of all elements
-
-    bool isInArena() const;
     
 public:
     // Constructors
-    Faiseur(); 
+    Faiseur();
     Faiseur(const S2d& pos, double alpha, double disp, double rad, unsigned int nbe);
     
     // Accessors
-    S2d getPosition() const;
-    double getAlpha() const;
-    double getDisplacement() const;
     double getRadius() const;
     unsigned int getNumElements() const;
     const vector<S2d>& getElements() const;
     
     // Mutators
-    void setPosition(const S2d& pos);
-    void setAlpha(double a);
-    void setDisplacement(double d);
     void setRadius(double r);
     void setNumElements(unsigned int nbe);
     
-    // Calculate positions of all elements 
+    // Faiseur-specific behavior
     void calculateElements();
-    
-    // Validation
-    // handles error message
-    bool isValid() const;
-    
-    // Collision detection
-    bool collidesWithArena() const;
-    bool collidesWithPoint(const S2d& point, unsigned int thisId = 0, unsigned int pointIndex = 0) const;
+    void move() override;
     bool collidesWithPoint(const S2d& point) const;
+    bool collidesWithFaiseur(const Faiseur& other, 
+                            unsigned int thisId = 0, unsigned int otherId = 0) const;
     
-    // Debug
-    void print() const;
+    // Overridden methods
+    bool isValid() const override;
+    bool isInArena() const override;
+    void print() const override;
+    bool isFaiseur() const override { return true; }
+    int draw() const override; // For drawing
 };
-
 
 
 #endif
