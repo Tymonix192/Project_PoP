@@ -28,9 +28,11 @@ clean:
 # -- Regles de dependances generees automatiquement
 #
 # DO NOT DELETE THIS LINE
-project.o: project.cpp jeu.h
+project.o: project.cpp jeu.h gui.o
+gui.o : gui.cc jeu.h graphic.h
 jeu.o: jeu.cpp tools.h message.h chaine.h mobile.h
 mobile.o: mobile.cpp message.h tools.h
 chaine.o: chaine.cpp tools.h message.h
 message.o: message.cc message.h
-tools.o: tools.cpp tools.h
+tools.o: tools.cpp tools.h graphic.h
+graphic.o: graphic.cc graphic.h graphic_gui.h

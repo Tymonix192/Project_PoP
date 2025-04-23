@@ -92,3 +92,12 @@ void Chaine::print() const {
     }
     std::cout << "Mode: " << _mode << "\n";
 }
+void Chaine::draw() const {
+    vector<S2d> *art = getArticulations();
+    for(int i = 0; i<sizeof(*art)/sizeof(S2d)-1; i++){
+        (*art)[i].draw(Color::RED);
+        if(i>0){
+            draw_line(*art[i-1], *art[i], Color::RED)
+        }
+    } 
+}

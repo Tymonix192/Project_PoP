@@ -163,11 +163,10 @@ void Particule::print() const {
 
 int Particule::draw() const {
     // Draw the particle as a circle
-    Circle circle(this->position, 1);
-    
-    // Draw the circle using graphic library
-    graphic_draw_circle(circle.get_center().x, circle.get_center().y, 
-                        circle.get_radius(), Color::GREEN);
+    Point point;
+    point.set_center(this->position);
+
+    point.draw();
     
     return 0;
 }
@@ -368,8 +367,7 @@ int Faiseur::draw() const {
         Circle circle(element, radius);
         
         // Draw the circle using graphic library
-        graphic_draw_circle(circle.get_center().x, circle.get_center().y, 
-                            circle.get_radius(), Color::BLUE);
+        circle.draw();
     }
     
     return 0;

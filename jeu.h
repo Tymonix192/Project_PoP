@@ -33,7 +33,8 @@ private:
     std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
     Chaine chaine;   
     std::string lastLoadedFile;                   
-    
+    Status status; // Game status (ongoing, won, lost)
+
     // States for the file reading state machine
     enum ReadState {
         READ_SCORE,
@@ -50,6 +51,7 @@ private:
     // Helper methods for entity access
     Particule* getParticule(size_t index);
     Faiseur* getFaiseur(size_t index);
+    std::vector<Faiseur*> getAllFaiseurs();
     // Validates any remaining global constraints
     bool validateGlobalConstraints() const;
     // Reads next non-empty, non-comment line
@@ -95,7 +97,7 @@ public:
     size_t getNbArticulations() const;
     std::string getMode() const;
     int getStatus() const;
-    int draw() const;
+    void draw() const;
 };
 
 #endif

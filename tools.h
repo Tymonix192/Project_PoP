@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <iostream>
+#include "graphic.h"
 
 constexpr float EPSIL_ZERO = 0.0;
 
@@ -20,6 +21,7 @@ class Point{
         virtual int set_center(S2d coordinates);
         virtual S2d get_center();
         double distance_org(); // returns distance from origin
+        virtual int draw(Color color = Color::GREEN);
     private:
         S2d _point;
         
@@ -36,7 +38,8 @@ class Circle: public Point{
         bool check_intersect(Circle other_circle);
         int set_center(S2d coordinates);
         S2d get_center();
-        private:
+        int draw(Color color = Color::BLUE);
+    private:
         double _radius;
         S2d _center;
 };
@@ -69,5 +72,6 @@ class Vector{
 bool circles_intersect(Circle circle_1, Circle circle_);
 Circle* circles_inside(Circle* circle_1, Circle* circle_2); 
 double distance(S2d point1, S2d point2);
+void draw_line(Point point_1, Point point_2, Color color);
 
 #endif
