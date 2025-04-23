@@ -9,7 +9,7 @@ Chaine::Chaine() : _mode("CONSTRUCTION") {
 
 int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r_capture) {
     articulations.clear();
-    r_capt=r_capture;
+    r_capt = r_capture;
     if (nbArt != 0) {
         for (int i = 0; i < nbArt; ++i) {
             double distFromOrigin = distance(art[i], ORIGIN);
@@ -18,18 +18,18 @@ int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r
                 std::cout << message::articulation_outside(art[i].x, art[i].y);
                 return -1;
             }
-            if( i == 0)
+            if(i == 0)
             {
-                if(distFromOrigin+r_capture + EPSIL_ZERO<r_max){
+                if(distFromOrigin + r_capture + EPSIL_ZERO < r_max){
                     std::cout << message::chaine_racine(art[0].x, art[0].y);
                     return -1;
                 }
             }
             if (i > 0) {
                 double dist_to_prev = distance(art[i], articulations[i - 1]);
-                if (dist_to_prev +EPSIL_ZERO > r_capture) 
+                if (dist_to_prev + EPSIL_ZERO > r_capture) 
                 {
-                    std::cout << message::chaine_max_distance(i);
+                    std::cout << message::chaine_max_distance(i - 1);
                     return -1;
                 }
             }
@@ -38,50 +38,23 @@ int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r
     } 
     return 0;
 }
+
 const std::vector<S2d>& Chaine::getArticulations() const {
     return articulations;
 }
+
 std::string Chaine::get_mode() const {
     return _mode;
 }
-int Chaine::set_mode(std::string mode = "CONSTRUCTION"){
+
+int Chaine::set_mode(std::string mode) {
     if(mode != "CONSTRUCTION" && mode != "GUIDAGE") return -1;
     _mode = mode;
     return 0;
 }
 
-bool Chaine::isCollidingWithFaiseur(const Faiseur& faiseur) const {
-    // If no articulations, no collision
-    if (articulations.empty()) {
-        return false;
-    }
-    
-    // Check each articulation against the faiseur
-    for (size_t i = 0; i < articulations.size(); ++i) {
-        if (faiseur.collidesWithPoint(articulations[i])) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-bool Chaine::checkCollisionsWithFaiseurs(const std::vector<Faiseur*>& faiseurs) {
-    // If no articulations, no collision
-    if (articulations.empty()) {
-        return false;
-    }
-    
-    // Check each faiseur
-    for (Faiseur* faiseur : faiseurs) {
-        if (faiseur && isCollidingWithFaiseur(*faiseur)) {
-            // Collision detected, reset chain
-            articulations.clear();
-            return true;
-        }
-    }
-    
-    return false; // No collisions
+void Chaine::clear() {
+    articulations.clear();
 }
 
 void Chaine::print() const {
@@ -91,4 +64,13 @@ void Chaine::print() const {
                   << articulations[i].x << ", " << articulations[i].y << ")\n";
     }
     std::cout << "Mode: " << _mode << "\n";
+}
+
+bool Chaine::is_in(Circle arena) {
+    for (const auto& art : articulations) {
+        if (distance(art, arena.get_center()) >= arena.get_radius()) {
+            return false;
+        }
+    }
+    return true;
 }

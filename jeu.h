@@ -48,7 +48,7 @@ private:
     
     // Helper methods for entity access
     Particule* getParticule(size_t index);
-    Faiseur* getFaiseur(size_t index);
+    Faiseur* getFaiseur(size_t index) const;
     std::vector<Faiseur*> getAllFaiseurs();
     
     // File reading helpers
@@ -77,6 +77,11 @@ private:
     // Data management
     void clearGameData();
     
+    // Collision detection methods
+    bool checkArticulationFaiseurCollision(const S2d& articulation, 
+                                         unsigned int articulationIndex) const;
+    bool checkChainFaiseurCollisions();
+    
 public:
     // Constructor
     Jeu();
@@ -93,6 +98,18 @@ public:
     size_t getNbFaiseurs() const;
     size_t getNbArticulations() const;
     std::string getMode() const;
+    Status getStatus() const;
+    
+    // GUI related methods
+    bool save(const std::string& filename);
+    bool set_jeu(const std::string& filename);
+    void clear();
+    void draw();
+    void set_mode(Mode mode);
+    unsigned int get_score() const;
+    size_t get_particle_count() const;
+    size_t get_faiseur_count() const; 
+    size_t get_articulation_count() const;
 };
 
 #endif

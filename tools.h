@@ -72,6 +72,6 @@ class Vector{
 bool circles_intersect(Circle circle_1, Circle circle_);
 Circle* circles_inside(Circle* circle_1, Circle* circle_2); 
 double distance(S2d point1, S2d point2);
-void draw_line(Point point_1, Point point_2, Color color) const;
+void draw_line(Point point_1, Point point_2, Color color);
 
 #endif

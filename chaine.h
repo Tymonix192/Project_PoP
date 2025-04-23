@@ -19,10 +19,12 @@ public:
     const std::vector<S2d>& getArticulations() const;
     std::string get_mode() const;
     int set_mode(std::string mode);
-    bool isCollidingWithFaiseur(const Faiseur& faiseur) const;
-    bool checkCollisionsWithFaiseurs(const std::vector<Faiseur*>& faiseurs);
+    
     void print() const; // debug feature
     bool is_in(Circle arena = {ORIGIN, 0});
+    
+    // Method to clear all articulations
+    void clear();
 };
 
-#endif 
+#endif

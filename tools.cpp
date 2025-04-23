@@ -186,7 +186,7 @@ int Vector::subtract(Vector vector){
         return false;
     }
 
-void draw_line(Point p1, Point p2, Color color) const {
+void draw_line(Point p1, Point p2, Color color) {
     graphic_draw_line(p1.get_center().x, p1.get_center().y,
                       p2.get_center().x, p2.get_center().y, color);
 }

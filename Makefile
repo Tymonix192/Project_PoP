@@ -1,7 +1,7 @@
 # Definitions de macros
 CXX     = g++
-CXXFLAGS = -g -Wall -std=c++17 `pkg-config --cflags gtkmm-3.0`
-LDFLAGS = `pkg-config --libs gtkmm-3.0`
+CXXFLAGS = -g -Wall -std=c++17 `pkg-config --cflags gtkmm-4.0`
+LDFLAGS = `pkg-config --libs gtkmm-4.0`
 CXXFILES = tools.cpp message.cc chaine.cpp mobile.cpp jeu.cpp project.cpp gui.cc graphic.cc
 OFILES = project.o jeu.o mobile.o chaine.o message.o tools.o gui.o graphic.o
 
