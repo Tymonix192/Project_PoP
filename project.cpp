@@ -15,6 +15,6 @@ int main(int argc, char* argv[]) {
  
     Jeu jeu;
     int result = jeu.lecture(filename);
-    My_window window(filename, jeu);
+    My_window window(filename, &jeu);
     return (result == 0) ? 0 : 1;
 }

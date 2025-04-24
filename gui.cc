@@ -25,7 +25,7 @@ enum ButtonName
 
 constexpr unsigned taille_dessin(500);
 
-My_window::My_window(string file_name, Jeu jeu)
+My_window::My_window(string file_name, Jeu* jeu)
     : main_box(Gtk::Orientation::HORIZONTAL),
       panel_box(Gtk::Orientation::VERTICAL),
       command_box(Gtk::Orientation::VERTICAL),
@@ -39,7 +39,7 @@ My_window::My_window(string file_name, Jeu jeu)
                  Gtk::Label("faiseurs:"),
                  Gtk::Label("articulations:")}),
       previous_file_name(file_name),
-      _jeu(&jeu),
+      _jeu(jeu),
       counter(0)      
 {
     set_title("Linked-Crossing Challenge");
