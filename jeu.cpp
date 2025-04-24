@@ -657,6 +657,9 @@ Status Jeu::getStatus() const {
 
 void Jeu::draw() const{
     // Draw the game state
+    Circle arena(ORIGIN, r_max);
+    arena.draw_outline(Color::GREEN);
+    // Draw all mobiles
     for (const auto& mobile : mobiles) {
         mobile->draw();
     }

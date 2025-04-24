@@ -41,6 +41,17 @@ int graphic_draw_circle(double x, double y, double radius, Color color)
     return 0;
 }
 
+int graphic_draw_circle_outline(double x, double y, double radius, Color color)
+{
+    if (!ptcr || radius <= 0) return -1;
+    (*ptcr)->save();
+    set_color(color);
+    (*ptcr)->arc(x, y, radius, 0, 2 * M_PI);
+    (*ptcr)->stroke();
+    (*ptcr)->restore();
+    return 0;
+}
+
 int graphic_draw_rectangle(double x, double y, double width, double height, Color color)
 {
     if (!ptcr || width <= 0 || height <= 0) return -1; 

@@ -71,6 +71,16 @@ int Circle::draw(Color color){
     return 0;
 }
 
+int Circle::draw(Color color_outline, Color color_inside){
+    graphic_draw_circle(_center.x, _center.y, _radius, color_outline);
+    graphic_draw_circle(_center.x, _center.y, _radius-1, color_inside);
+    return 0;
+}
+
+void Circle::draw_outline(Color color){
+    graphic_draw_circle_outline(_center.x, _center.y, _radius, color);
+}
+
 int Vector::set_coordinates(S2d start_point, S2d end_point){
     _coordinate_start = start_point;
     _coordinate_end = end_point;

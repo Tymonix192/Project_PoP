@@ -39,6 +39,8 @@ class Circle: public Point{
         int set_center(S2d coordinates);
         S2d get_center();
         int draw(Color color = Color::BLUE);
+        int draw(Color color_outline, Color color_inside);
+        void draw_outline(Color color);
     private:
         double _radius;
         S2d _center;

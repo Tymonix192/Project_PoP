@@ -49,18 +49,12 @@ My_window::My_window(string file_name, Jeu* jeu)
     panel_box.append(command_frame);
     panel_box.append(info_frame);
 
-    std::cout<<"debug 1"<<std::endl;
-
     set_commands();
     set_key_controller();
     set_mouse_controller();
-    std::cout<<"debug 2"<<std::endl;
     set_infos();
-    std::cout<<"debug 3"<<std::endl;
     set_drawing();
-    std::cout<<"debug 4"<<std::endl;
     set_jeu(file_name);
-    std::cout<<"debug 5"<<std::endl;
 }
 void My_window::set_commands()
 {
@@ -105,6 +99,24 @@ void My_window::open_clicked()
     auto dialog = new Gtk::FileChooserDialog("Choose a text file",
                                              Gtk::FileChooserDialog::Action::OPEN);
     set_dialog(dialog);
+    if (_jeu->restart())
+    {
+        _jeu->clear();
+        _jeu->set_jeu(previous_file_name);
+        drawing.queue_draw(); // Refresh the drawing area
+        update_infos();
+        activated = false;
+        buttons[B_EXIT].set_sensitive(true);
+        buttons[B_OPEN].set_sensitive(true);
+        buttons[B_SAVE].set_sensitive(true);
+        buttons[B_RESTART].set_sensitive(true);
+        buttons[B_START].set_label("start");
+        buttons[B_STEP].set_sensitive(true);
+    }
+    else
+    {
+        cout << "Error: unable to restart the game" << endl;
+    }
 }
 void My_window::save_clicked()
 {
@@ -118,6 +130,10 @@ void My_window::restart_clicked()
     //initialise the game from the last loaded file
     if (_jeu->restart())
     {
+        _jeu->clear();
+        _jeu->set_jeu(previous_file_name);
+        drawing.queue_draw(); // Refresh the drawing area
+        update_infos();
         activated = false;
         buttons[B_EXIT].set_sensitive(true);
         buttons[B_OPEN].set_sensitive(true);
@@ -133,7 +149,7 @@ void My_window::restart_clicked()
 }
 void My_window::start_clicked()
 {
-    if (activated) // variable d'état: true si le _jeu est en cours
+    if (activated) // Game is running, so pause it
     {
         loop_conn.disconnect();
         activated = false;
@@ -144,11 +160,9 @@ void My_window::start_clicked()
         buttons[B_START].set_label("start");
         buttons[B_STEP].set_sensitive(true);
     }
-    else if (_jeu->getStatus() == ONGOING) // voir _jeu.h
+    else if (_jeu->getStatus() == ONGOING) // Game can be started
     {
-        loop_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this,
-                                                                 &My_window::loop),
-                                                   25);
+        loop_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &My_window::loop), 100); // 100 ms interval
         activated = true;
         buttons[B_EXIT].set_sensitive(false);
         buttons[B_OPEN].set_sensitive(false);
@@ -158,10 +172,34 @@ void My_window::start_clicked()
         buttons[B_STEP].set_sensitive(false);
     }
 }
+
 void My_window::step_clicked()
 {
-    _jeu->update();
+    if (_jeu->getStatus() == ONGOING) // Only update if the game is ongoing
+    {
+        _jeu->update();
+        update_infos();      // Update the info labels (score, particle count, etc.)
+        drawing.queue_draw(); // Refresh the drawing area
+
+        // Check if the game has ended after the update
+        if (_jeu->getStatus() != ONGOING)
+        {
+            activated = false; // Ensure the game remains paused
+            buttons[B_EXIT].set_sensitive(true);
+            buttons[B_OPEN].set_sensitive(true);
+            buttons[B_SAVE].set_sensitive(false); // Disable save if game is over
+            buttons[B_RESTART].set_sensitive(true);
+            buttons[B_START].set_label("start");
+            buttons[B_START].set_sensitive(false); // Disable start if game is over
+            buttons[B_STEP].set_sensitive(false); // Disable step if game is over
+            checks[0].set_active(true);
+            checks[0].set_sensitive(false);
+            checks[1].set_sensitive(false);
+
+        }
+    }
 }
+
 void My_window::build_clicked()
 {
     _jeu->set_mode(CONSTRUCTION);
@@ -271,18 +309,19 @@ bool My_window::loop()
     if (activated)
     {
         update();
-        return true;
+        return true; // Continue the timer
     }
-    return false;
+    return false; // Stop the timer
 }
+
 void My_window::update()
 {
-	_jeu->update();
+    _jeu->update();
     update_infos();
-    drawing.queue_draw();
+    drawing.queue_draw(); // Refresh the display
     counter += 1;
 
-    if(_jeu->getStatus() != ONGOING)
+    if (_jeu->getStatus() != ONGOING)
     {
         loop_conn.disconnect(); // Stop the timer
         activated = false;
@@ -296,7 +335,7 @@ void My_window::update()
         checks[0].set_active(true);
         checks[0].set_sensitive(false);
         checks[1].set_sensitive(false);
-    } 
+    }
 }
 
 void My_window::set_infos()
@@ -381,18 +420,33 @@ S2d My_window::scaled(S2d const &pos) const
 void My_window::on_drawing_left_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
-    // Placeholder: no chain interaction in rendu2
-    // Future: _jeu.add_chain_point(pos) or similar for rendu3
     checks[0].set_active(true);
     build_clicked();
     checks[1].set_active(false);
+
+    // For Rendu 2, chain interaction is not implemented, but we still need to update
+    if (!activated && _jeu->getStatus() == ONGOING) // Game is paused and ongoing
+    {
+        _jeu->update();
+        update_infos();
+        drawing.queue_draw();
+    }
 }
+
 void My_window::on_drawing_right_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
-    // Placeholder: no chain interaction in rendu2
     checks[1].set_active(true);
     guide_clicked();
+    checks[0].set_active(false);
+
+    // For Rendu 2, chain interaction is not implemented, but we still need to update
+    if (!activated && _jeu->getStatus() == ONGOING) // Game is paused and ongoing
+    {
+        _jeu->update();
+        update_infos();
+        drawing.queue_draw();
+    }
 }
 void My_window::on_drawing_move(double x, double y)
 {
@@ -410,7 +464,7 @@ void My_window::set_jeu(string file_name)
         buttons[B_SAVE].set_sensitive(false); 
         buttons[B_START].set_sensitive(false); 
         buttons[B_STEP].set_sensitive(false); 
-        buttons[B_RESTART].set_sensitive(false); 
+        buttons[B_RESTART].set_sensitive(true); 
         checks[0].set_active(true);
         checks[0].set_sensitive(false); 
         checks[1].set_sensitive(false);

@@ -23,4 +23,7 @@ int graphic_draw_circle(double x, double y, double radius, Color color);
 // Draw a rectangle centered at (x, y) with given width, height, and color
 int graphic_draw_rectangle(double x, double y, double width, double height, Color color);
 
+// Draw a circle outline centered at (x, y) with given radius and color
+int graphic_draw_circle_outline(double x, double y, double radius, Color color);
+
 #endif

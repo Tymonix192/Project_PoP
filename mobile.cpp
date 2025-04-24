@@ -127,9 +127,8 @@ void Particule::move() {
 }
 int Particule::draw() const {
     // Draw the particle as a circle
-    Point point;
-    point.set_center(this->position);
-    point.draw(CYAN);
+    Circle circle(position, r_viz);
+    circle.draw(Color::RED, Color::CYAN );
     return 0;
 }
 // Validation
@@ -275,7 +274,7 @@ int Faiseur::draw() const {
     // Draw each element of the faiseur as a blue circle
     for (const S2d& element : elements) {
         Circle elementCircle(element, radius);
-        elementCircle.draw(BLUE);
+        elementCircle.draw_outline(BLUE);
     }
     
     return 0;
