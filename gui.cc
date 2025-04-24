@@ -32,17 +32,15 @@ My_window::My_window(string file_name, Jeu jeu)
       command_frame("General"),
       info_frame("Info : nombre de..."),
       activated(false),
-      buttons({Gtk::Button("exit"), Gtk::Button("open"), Gtk::Button("save"),
-               Gtk::Button("restart"), Gtk::Button("start"), Gtk::Button("step")}),
+      buttons({Gtk::Button("exit"), Gtk::Button("open"), Gtk::Button("save"), Gtk::Button("restart"), Gtk::Button("start"), Gtk::Button("step")}),
       checks({Gtk::CheckButton("Construction"), Gtk::CheckButton("Guidage")}),
       info_text({Gtk::Label("score:"),
                  Gtk::Label("particules:"),
                  Gtk::Label("faiseurs:"),
                  Gtk::Label("articulations:")}),
       previous_file_name(file_name),
-      this->jeu(jeu),
-      counter(0),
-      
+      _jeu(jeu),
+      counter(0)      
 {
     set_title("Linked-Crossing Challenge");
     set_child(main_box);
@@ -112,7 +110,7 @@ void My_window::save_clicked()
 void My_window::restart_clicked()
 {
     //initialise the game from the last loaded file
-    if (jeu.restart())
+    if (_jeu.restart())
     {
         activated = false;
         buttons[B_EXIT].set_sensitive(true);
@@ -129,7 +127,7 @@ void My_window::restart_clicked()
 }
 void My_window::start_clicked()
 {
-    if (activated) // variable d'état: true si le jeu est en cours
+    if (activated) // variable d'état: true si le _jeu est en cours
     {
         loop_conn.disconnect();
         activated = false;
@@ -140,7 +138,7 @@ void My_window::start_clicked()
         buttons[B_START].set_label("start");
         buttons[B_STEP].set_sensitive(true);
     }
-    else if (jeu.getStatus() == ON_GOING) // voir jeu.h
+    else if (_jeu.getStatus() == ONGOING) // voir _jeu.h
     {
         loop_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this,
                                                                  &My_window::loop),
@@ -156,15 +154,15 @@ void My_window::start_clicked()
 }
 void My_window::step_clicked()
 {
-    jeu.update();
+    _jeu.update();
 }
 void My_window::build_clicked()
 {
-    jeu.set_mode(CONSTRUCTION);
+    _jeu.set_mode(CONSTRUCTION);
 }
 void My_window::guide_clicked()
 {
-    jeu.set_mode(GUIDAGE);
+    _jeu.set_mode(GUIDAGE);
 }
 void My_window::set_key_controller()
 {
@@ -245,15 +243,15 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
     case OPEN:
         if (file_name != "")
         {
-            jeu.clear();
-            jeu.set_jeu(file_name);
+            _jeu.clear();
+            _jeu.set_jeu(file_name);
             this->previous_file_name = file_name;
             dialog->hide();
         }
         break;
     case SAVE:
         if (file_name != "") {
-            jeu.save(file_name)
+            _jeu.save(file_name);
             dialog->hide();
         }   
         break;
@@ -273,12 +271,12 @@ bool My_window::loop()
 }
 void My_window::update()
 {
-	jeu.update();
+	_jeu.update();
     update_infos();
     drawing.queue_draw();
     counter += 1;
 
-    if(jeu.getStatus() != ONGOING)
+    if(_jeu.getStatus() != ONGOING)
     {
         loop_conn.disconnect(); // Stop the timer
         activated = false;
@@ -311,10 +309,10 @@ void My_window::set_infos()
 }
 void My_window::update_infos()
 {
-    info_value[0].set_text(to_string(jeu.get_score()));
-    info_value[1].set_text(to_string(jeu.get_particle_count()));
-    info_value[2].set_text(to_string(jeu.get_faiseur_count()));
-    info_value[3].set_text(to_string(jeu.get_articulation_count()));
+    info_value[0].set_text(to_string(_jeu.get_score()));
+    info_value[1].set_text(to_string(_jeu.get_particle_count()));
+    info_value[2].set_text(to_string(_jeu.get_faiseur_count()));
+    info_value[3].set_text(to_string(_jeu.get_articulation_count()));
 }
 
 void My_window::set_drawing()
@@ -336,9 +334,9 @@ void My_window::on_draw(const Cairo::RefPtr<Cairo::Context> &cr,
 	cr->set_source_rgb(1.0, 1.0, 1.0);
     cr->paint();
 
-    if (jeu.getStatus() != -1) 
+    if (_jeu.getStatus() != -1) 
     {
-        jeu.draw(); 
+        _jeu.draw(); 
     }
 }
 
@@ -378,7 +376,7 @@ void My_window::on_drawing_left_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
     // Placeholder: no chain interaction in rendu2
-    // Future: jeu.add_chain_point(pos) or similar for rendu3
+    // Future: _jeu.add_chain_point(pos) or similar for rendu3
     build_clicked();
 }
 void My_window::on_drawing_right_click(int n_press, double x, double y)
@@ -396,10 +394,10 @@ void My_window::on_drawing_move(double x, double y)
 
 void My_window::set_jeu(string file_name)
 {
-    if (!jeu.set_jeu(file_name)) // Failed to read file
+    if (!_jeu.set_jeu(file_name)) // Failed to read file
     {
         std::cout << "Error reading file: " << file_name << std::endl;
-        jeu.clear();
+        _jeu.clear();
         buttons[B_SAVE].set_sensitive(false); 
         buttons[B_START].set_sensitive(false); 
         buttons[B_STEP].set_sensitive(false); 
@@ -417,7 +415,7 @@ void My_window::set_jeu(string file_name)
         buttons[B_RESTART].set_sensitive(true); // Enable restart
         checks[0].set_sensitive(true); // Enable Construction
         checks[1].set_sensitive(true); // Enable Guidage
-        switch (jeu.getStatus())
+        switch (_jeu.getStatus())
         {
         case CONSTRUCTION:
             checks[0].set_active(true);
