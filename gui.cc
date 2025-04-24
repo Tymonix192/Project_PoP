@@ -377,13 +377,16 @@ void My_window::on_drawing_left_click(int n_press, double x, double y)
     S2d pos = scaled({x, y}); // Convert to model coordinates
     // Placeholder: no chain interaction in rendu2
     // Future: _jeu.add_chain_point(pos) or similar for rendu3
+    checks[0].set_active(true);
     build_clicked();
+    checks[1].set_active(false);
 }
 void My_window::on_drawing_right_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
     // Placeholder: no chain interaction in rendu2
-    this->guide_clicked();
+    checks[1].set_active(true);
+    guide_clicked();
 }
 void My_window::on_drawing_move(double x, double y)
 {
