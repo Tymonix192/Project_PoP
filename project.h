@@ -3,6 +3,7 @@
 
 #include "jeu.h"
 #include <string>
+#include "gui.h"
 
 // argc Number of command line arguments
 // argv Array of command line arguments
