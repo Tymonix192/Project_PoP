@@ -443,3 +443,43 @@ void My_window::set_jeu(string file_name)
     update_infos(); 
     drawing.queue_draw(); 
 }
+
+int start_gui_application(int argc, char* argv[], const std::string& filename, std::unique_ptr<Jeu> jeu) {
+    try {
+        // Create the GTK application
+        auto app = Gtk::Application::create("org.example.app");
+        
+        // Connect to the activate signal
+        app->signal_activate().connect([&app, &filename, &jeu]() {
+            try {
+                std::cout << "Creating window..." << std::endl;
+                // Create the main window, passing ownership of jeu
+                auto window = new My_window(filename, jeu.release());
+                std::cout << "Window created" << std::endl;
+                
+                // Add window to the application and show it
+                app->add_window(*window);
+                window->show();
+                
+                // Make sure window gets deleted when closed
+                window->signal_hide().connect([window]() {
+                    delete window;
+                });
+            } catch (const std::exception& e) {
+                std::cerr << "Exception when creating window: " << e.what() << std::endl;
+            } catch (...) {
+                std::cerr << "Unknown exception occurred when creating window" << std::endl;
+            }
+        });
+        
+        // Run the application
+        std::cout << "Starting application..." << std::endl;
+        return app->run(1, argv);  // Use argc=1 to avoid file handling issues
+    } catch (const std::exception& e) {
+        std::cerr << "Exception in GUI application: " << e.what() << std::endl;
+        return 1;
+    } catch (...) {
+        std::cerr << "Unknown exception in GUI application" << std::endl;
+        return 1;
+    }
+}

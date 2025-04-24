@@ -16,6 +16,6 @@ int main(int argc, char* argv[]) {
     auto jeu = std::make_unique<Jeu>();
     int result = jeu->lecture(filename);
     std::cout<<"here"<<std::endl;
-    auto app = Gtk::Application::create("org.example.app");
-    return app->make_window_and_run<My_window>(argc, argv, filename, jeu.release());
+
+    return start_gui_application(argc, argv, filename, std::move(jeu));
 }
