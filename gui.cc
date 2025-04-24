@@ -245,19 +245,17 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
     case OPEN:
         if (file_name != "")
         {
+            jeu.clear();
             jeu.set_jeu(file_name);
             this->previous_file_name = file_name;
             dialog->hide();
         }
         break;
     case SAVE:
-        if (file_name != "")
-        {
-            if(!jeu.save(file_name)){
-                cout << "unable to save the game" << endl;
-            }
+        if (file_name != "") {
+            jeu.save(file_name)
             dialog->hide();
-        }
+        }   
         break;
     default:
         break;
@@ -381,11 +379,13 @@ void My_window::on_drawing_left_click(int n_press, double x, double y)
     S2d pos = scaled({x, y}); // Convert to model coordinates
     // Placeholder: no chain interaction in rendu2
     // Future: jeu.add_chain_point(pos) or similar for rendu3
+    build_clicked();
 }
 void My_window::on_drawing_right_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
     // Placeholder: no chain interaction in rendu2
+    this->guide_clicked();
 }
 void My_window::on_drawing_move(double x, double y)
 {
