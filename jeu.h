@@ -12,6 +12,13 @@
 #include "message.h"
 #include "tools.h"
 
+// Define Status enum outside of the class so it can be used as a return type
+enum Status {
+    ONGOING,
+    WON,
+    LOST
+};
+
 /** 
  * This class is responsible for:
  * - Reading configuration files
@@ -20,15 +27,6 @@
  */
 class Jeu {
 private:
-    //attributs
-    unsigned int score;           
-    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
-    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
-    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
-    Chaine chaine;   
-    std::string lastLoadedFile;                   
-    
-    // States for the file reading state machine
     enum ReadState {
         READ_SCORE,
         READ_PARTICULE_COUNT,
@@ -40,15 +38,20 @@ private:
         READ_MODE,
         READ_COMPLETE
     };
-    enum Status {
-        ONGOING,
-        WON,
-        LOST
-    };
+
+    //attributs
+    unsigned int score;           
+    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
+    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
+    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
+    Chaine chaine;   
+    std::string lastLoadedFile;   
+    Status status;                
+
     
     // Helper methods for entity access
     Particule* getParticule(size_t index);
-    Faiseur* getFaiseur(size_t index);
+    Faiseur* getFaiseur(size_t index) const;
     std::vector<Faiseur*> getAllFaiseurs();
     
     // File reading helpers
@@ -77,6 +80,11 @@ private:
     // Data management
     void clearGameData();
     
+    // Collision detection methods
+    bool checkArticulationFaiseurCollision(const S2d& articulation, 
+                                         unsigned int articulationIndex) const;
+    bool checkChainFaiseurCollisions();
+    
 public:
     // Constructor
     Jeu();
@@ -93,6 +101,18 @@ public:
     size_t getNbFaiseurs() const;
     size_t getNbArticulations() const;
     std::string getMode() const;
+    Status getStatus() const;
+    
+    // GUI related methods
+    bool save(const std::string& filename);
+    bool set_jeu(const std::string& filename);
+    void clear();
+    void draw() const;
+    void set_mode(Mode mode);
+    unsigned int get_score() const;
+    size_t get_particle_count() const;
+    size_t get_faiseur_count() const; 
+    size_t get_articulation_count() const;
 };
 
 #endif

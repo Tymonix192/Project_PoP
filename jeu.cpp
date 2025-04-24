@@ -8,7 +8,7 @@
 #include <algorithm>
 
 // Constructor initializes the game state
-Jeu::Jeu() : score(0), lastLoadedFile("") {
+Jeu::Jeu() : score(0), lastLoadedFile(""), status(ONGOING) {
     // All other containers are initialized by their default constructors
 }
 
@@ -18,7 +18,7 @@ Particule* Jeu::getParticule(size_t index) {
     return static_cast<Particule*>(mobiles[particuleIndices[index]].get());
 }
 
-Faiseur* Jeu::getFaiseur(size_t index) {
+Faiseur* Jeu::getFaiseur(size_t index) const {
     if (index >= faiseurIndices.size()) return nullptr;
     return static_cast<Faiseur*>(mobiles[faiseurIndices[index]].get());
 }
@@ -205,36 +205,41 @@ int Jeu::handleArticulationDataState(const std::string& line,
         std::cerr << "Error parsing articulation data" << std::endl;
         return -1;
     }
-    
-    // Use the tools module to check if the point is inside the arena
+
     S2d point = {x, y};
-    articulations.push_back(point);
+    // Check if articulation is inside arena
+    if (distance(point, ORIGIN) >= r_max) {
+        std::cout << message::articulation_outside(point.x, point.y);
+        return -1;
+    }
+    
+    // Check root articulation is close to boundary
+    if (articulationIndex == 0) {
+        double distFromOrigin = distance(point, ORIGIN);
+        if(distFromOrigin + r_capture + EPSIL_ZERO < r_max){
+            std::cout << message::chaine_racine(point.x, point.y);
+            return -1;
+        }
+    }
     
     // Validate distance between consecutive articulations
     if (articulationIndex > 0) {
-        double dist = distance(articulations[articulationIndex], 
-                                articulations[articulationIndex-1]);
-        if (dist > r_capture) {
+        double dist = distance(point, articulations[articulationIndex-1]);
+        if (dist + EPSIL_ZERO > r_capture) {
             std::cout << message::chaine_max_distance(articulationIndex-1);
             return -1;
         }
     }
-    
     // Check for collisions with makers
-    for (size_t j = 0; j < faiseurIndices.size(); ++j) {
-        Faiseur* maker = getFaiseur(j);
-        if (maker->collidesWithPoint(point)) {
-            std::cout << message::chaine_articulation_collision(articulationIndex, j, 0);
-            return -1;
-        }
+    if (checkArticulationFaiseurCollision(point, articulationIndex)) {
+        return -1;
     }
-    
+    articulations.push_back(point);
     // Check if we've read all articulations
     articulationIndex++;
     if (articulationIndex >= totalArticulations) {
         nextState = READ_MODE;
     }
-    
     return 0;
 }
 
@@ -442,6 +447,43 @@ bool Jeu::restart() {
     return lecture(lastLoadedFile);
 }
 
+//Collision check
+bool Jeu::checkArticulationFaiseurCollision(const S2d& articulation,
+    unsigned int articulationIndex) const {
+// Check each faiseur for collision with this articulation
+for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+const Faiseur* faiseur = getFaiseur(i);
+if (!faiseur) continue;
+
+if (faiseur->collidesWithPoint(articulation)) {
+// Report the collision
+std::cout << message::chaine_articulation_collision(
+articulationIndex, i, 0); // Assuming first element is colliding
+return true;
+}
+}
+return false;
+}
+
+bool Jeu::checkChainFaiseurCollisions() {
+// If no articulations, no collision possible
+const std::vector<S2d>& articulations = chaine.getArticulations();
+if (articulations.empty()) {
+return false;
+}
+
+// Check each articulation against all faiseurs
+for (size_t i = 0; i < articulations.size(); ++i) {
+if (checkArticulationFaiseurCollision(articulations[i], i)) {
+// Collision detected, clear the chain
+chaine.clear();
+return true;
+}
+}
+
+return false; // No collisions detected
+}
+
 unsigned int Jeu::getScore() const {
     return score;
 }
@@ -477,7 +519,7 @@ bool Jeu::update() {
     
     // Check for collisions between chain and faiseurs
     if (!chaine.getArticulations().empty()) {
-        chaine.checkCollisionsWithFaiseurs(getAllFaiseurs());
+        checkChainFaiseurCollisions();
     }
     
     return true; // Update successful
@@ -605,4 +647,16 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
             mobiles.erase(mobiles.begin() + mobileIdx);
         }
     }
+}
+
+Status Jeu::getStatus() const {
+    return this->status;
+}
+
+void Jeu::draw() const{
+    // Draw the game state
+    for (const auto& mobile : mobiles) {
+        mobile->draw();
+    }
+    chaine.draw();
 }

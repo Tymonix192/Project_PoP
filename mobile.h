@@ -40,6 +40,7 @@ public:
     virtual void move() = 0; // Each entity type implements its own movement logic
     virtual bool isValid() const = 0;
     virtual bool isInArena() const = 0;
+    virtual int draw() const = 0;
     virtual void print() const = 0;  // For testing/debugging
     
     // Type identification
@@ -52,7 +53,7 @@ private:
     unsigned int counter;
 
 public:
-    // Constructors
+    //Constructors
     Particule(const S2d& pos, double alpha, double disp, unsigned int count = 0);
     Particule(); // Default constructor
 
@@ -71,6 +72,7 @@ public:
     // Overridden methods
     bool isValid() const override;
     bool isInArena() const override;
+    int draw() const override;
     void print() const override;
     bool isParticule() const override { return true; }
 };
@@ -105,6 +107,7 @@ public:
     // Overridden methods
     bool isValid() const override;
     bool isInArena() const override;
+    int draw() const override;
     void print() const override;
     bool isFaiseur() const override { return true; }
 };
