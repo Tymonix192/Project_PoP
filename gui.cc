@@ -99,24 +99,6 @@ void My_window::open_clicked()
     auto dialog = new Gtk::FileChooserDialog("Choose a text file",
                                              Gtk::FileChooserDialog::Action::OPEN);
     set_dialog(dialog);
-    if (_jeu->restart())
-    {
-        _jeu->clear();
-        _jeu->set_jeu(previous_file_name);
-        drawing.queue_draw(); // Refresh the drawing area
-        update_infos();
-        activated = false;
-        buttons[B_EXIT].set_sensitive(true);
-        buttons[B_OPEN].set_sensitive(true);
-        buttons[B_SAVE].set_sensitive(true);
-        buttons[B_RESTART].set_sensitive(true);
-        buttons[B_START].set_label("start");
-        buttons[B_STEP].set_sensitive(true);
-    }
-    else
-    {
-        cout << "Error: unable to restart the game" << endl;
-    }
 }
 void My_window::save_clicked()
 {
@@ -268,40 +250,111 @@ void My_window::set_dialog(Gtk::FileChooserDialog *dialog)
 
     dialog->show();
 }
+
 void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
 {
     string file_name = "";
     if (dialog->get_file())
     {
         file_name = dialog->get_file()->get_path();
+        std::cout << "Selected file: " << file_name << std::endl;
         if (file_name.size() < 4 or file_name.substr(file_name.size() - 4) != ".txt")
         {
+            std::cout << "File does not end with .txt" << std::endl;
             file_name = "";
         }
     }
+    else
+    {
+        std::cout << "No file selected or get_file() failed" << std::endl;
+    }
+
     switch (response)
     {
     case CANCEL:
+        std::cout << "Dialog cancelled" << std::endl;
         dialog->hide();
         break;
     case OPEN:
         if (file_name != "")
         {
+            std::cout << "Attempting to load file: " << file_name << std::endl;
+            // Reset the game state
             _jeu->clear();
-            _jeu->set_jeu(file_name);
-            this->previous_file_name = file_name;
+            activated = false; // Stop any running simulation
+            buttons[B_EXIT].set_sensitive(true);
+            buttons[B_OPEN].set_sensitive(true);
+            buttons[B_SAVE].set_sensitive(true);
+            buttons[B_RESTART].set_sensitive(true);
+            buttons[B_START].set_label("start");
+            buttons[B_START].set_sensitive(true);
+            buttons[B_STEP].set_sensitive(true);
+            checks[0].set_sensitive(true);
+            checks[1].set_sensitive(true);
+
+            // Load the new file
+            if (_jeu->set_jeu(file_name))
+            {
+                std::cout << "File loaded successfully" << std::endl;
+                this->previous_file_name = file_name;
+                // Update mode based on the loaded file
+                switch (_jeu->getStatus())
+                {
+                case CONSTRUCTION:
+                    checks[0].set_active(true);
+                    checks[1].set_active(false);
+                    break;
+                case GUIDAGE:
+                    checks[1].set_active(true);
+                    checks[0].set_active(false);
+                    break;
+                default:
+                    checks[0].set_active(true);
+                    checks[1].set_active(false);
+                    break;
+                }
+            }
+            else
+            {
+                std::cout << "Failed to load file: " << file_name << std::endl;
+                // Disable buttons since the game state is cleared and no file is loaded
+                buttons[B_SAVE].set_sensitive(false);
+                buttons[B_START].set_sensitive(false);
+                buttons[B_STEP].set_sensitive(false);
+                buttons[B_RESTART].set_sensitive(false);
+                checks[0].set_active(true);
+                checks[0].set_sensitive(false);
+                checks[1].set_sensitive(false);
+            }
+            update_infos();      // Update info labels
+            drawing.queue_draw(); // Refresh the display
+            dialog->hide();
+        }
+        else
+        {
+            std::cout << "No valid file selected for OPEN action" << std::endl;
             dialog->hide();
         }
         break;
     case SAVE:
-        if (file_name != "") {
+        if (file_name != "")
+        {
+            std::cout << "Saving to file: " << file_name << std::endl;
             _jeu->save(file_name);
             dialog->hide();
-        }   
+        }
+        else
+        {
+            std::cout << "No valid file selected for SAVE action" << std::endl;
+            dialog->hide();
+        }
         break;
     default:
+        std::cout << "Unknown dialog response: " << response << std::endl;
+        dialog->hide();
         break;
     }
+    delete dialog; // Prevent memory leak
 }
 
 bool My_window::loop()
