@@ -649,6 +649,8 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
     }
 }
 
+
+//GUI related methods
 Status Jeu::getStatus() const {
     return this->status;
 }
@@ -659,4 +661,52 @@ void Jeu::draw() const{
         mobile->draw();
     }
     chaine.draw();
+}
+
+void Jeu::clear()
+{
+    // Clear all game data structures
+    mobiles.clear();
+    particuleIndices.clear();
+    faiseurIndices.clear();
+    chaine.clear();
+}
+
+
+bool Jeu::set_jeu(const string& file_name) {
+    if (!lecture(file_name)) {
+        std::cout << "Error reading file: " << file_name << std::endl;
+        clear();
+        return false;
+    }
+    return true;
+}
+
+void Jeu::set_mode(Mode mode) {
+    if (mode == CONSTRUCTION){
+        chaine.set_mode("CONSTRUCTION");
+    }else if(mode == GUIDAGE){
+        chaine.set_mode("GUIDAGE");
+    }
+    
+}
+
+unsigned int Jeu::get_score() const {
+    return score;
+}
+
+size_t Jeu::get_articulation_count() const {
+    return chaine.getArticulations().size();
+}
+
+size_t Jeu::get_particle_count() const {
+    return particuleIndices.size();
+}
+
+size_t Jeu::get_faiseur_count() const {
+    return faiseurIndices.size();
+}
+
+bool Jeu::save(const std::string& filename) {
+    return saveToFile(filename);
 }

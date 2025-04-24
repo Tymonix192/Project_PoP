@@ -36,7 +36,7 @@ private:
     Gtk::DrawingArea drawing;
     std::string previous_file_name;
 	// ajouter un attribut pour accéder au jeu (instance ou pointeur)
-	Jeu _jeu;
+	Jeu* _jeu;
 
     void set_commands();
 

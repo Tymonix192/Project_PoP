@@ -16,7 +16,8 @@
 enum Status {
     ONGOING,
     WON,
-    LOST
+    LOST,
+    ERROR = -1
 };
 
 /** 

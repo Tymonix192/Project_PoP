@@ -14,13 +14,13 @@ enum Color
     CYAN
 };
 
-void graphic_draw_line(double x1, double y1, double x2, double y2, Color color);
 // Draw a line from (x1, y1) to (x2, y2) with specified color
+int graphic_draw_line(double x1, double y1, double x2, double y2, Color color);
 
-void graphic_draw_circle(double x, double y, double radius, Color color);
 // Draw a circle centered at (x, y) with given radius and color
+int graphic_draw_circle(double x, double y, double radius, Color color);
 
-void graphic_draw_rectangle(double x, double y, double width, double height, Color color);
 // Draw a rectangle centered at (x, y) with given width, height, and color
+int graphic_draw_rectangle(double x, double y, double width, double height, Color color);
 
 #endif
