@@ -13,8 +13,9 @@ int main(int argc, char* argv[]) {
     // Get the filename from the command-line argument
     std::string filename = argv[1];
  
-    Jeu jeu;
-    int result = jeu.lecture(filename);
-    My_window window(filename, &jeu);
-    return (result == 0) ? 0 : 1;
+    auto jeu = std::make_unique<Jeu>();
+    int result = jeu->lecture(filename);
+    std::cout<<"here"<<std::endl;
+    auto app = Gtk::Application::create("org.example.app");
+    return app->make_window_and_run<My_window>(argc, argv, filename, jeu.release());
 }

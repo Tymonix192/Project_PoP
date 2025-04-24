@@ -39,9 +39,9 @@ My_window::My_window(string file_name, Jeu* jeu)
                  Gtk::Label("faiseurs:"),
                  Gtk::Label("articulations:")}),
       previous_file_name(file_name),
-      _jeu(jeu),
-      counter(0)      
+     _jeu(jeu)
 {
+    std::cout<<"debug 0"<<std::endl;
     set_title("Linked-Crossing Challenge");
     set_child(main_box);
     main_box.append(panel_box);
@@ -49,12 +49,18 @@ My_window::My_window(string file_name, Jeu* jeu)
     panel_box.append(command_frame);
     panel_box.append(info_frame);
 
+    std::cout<<"debug 1"<<std::endl;
+
     set_commands();
     set_key_controller();
     set_mouse_controller();
+    std::cout<<"debug 2"<<std::endl;
     set_infos();
+    std::cout<<"debug 3"<<std::endl;
     set_drawing();
+    std::cout<<"debug 4"<<std::endl;
     set_jeu(file_name);
+    std::cout<<"debug 5"<<std::endl;
 }
 void My_window::set_commands()
 {
