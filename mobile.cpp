@@ -128,7 +128,7 @@ void Particule::move() {
 int Particule::draw() const {
     // Draw the particle as a circle
     Circle circle(position, r_viz);
-    circle.draw(Color::GREEN, Color::CYAN );
+    circle.draw(Color::RED, Color::CYAN );
     return 0;
 }
 // Validation
