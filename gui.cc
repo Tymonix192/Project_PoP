@@ -319,6 +319,7 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
             {
                 std::cout << "Failed to load file: " << file_name << std::endl;
                 _jeu->setStatus(ERROR); // Reset the game state
+                _jeu->clear();
                 // Disable buttons since the game state is cleared and no file is loaded
                 buttons[B_SAVE].set_sensitive(false);
                 buttons[B_START].set_sensitive(false);

@@ -673,6 +673,7 @@ void Jeu::clear()
     particuleIndices.clear();
     faiseurIndices.clear();
     chaine.clear();
+    score = 0;
 }
 
 
