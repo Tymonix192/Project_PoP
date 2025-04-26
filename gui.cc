@@ -296,9 +296,10 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
             if (_jeu->set_jeu(file_name))
             {
                 std::cout << "File loaded successfully" << std::endl;
+                _jeu->setStatus(ONGOING); // Set the game status to ongoing
                 this->previous_file_name = file_name;
                 // Update mode based on the loaded file
-                switch (_jeu->getStatus())
+                switch (_jeu->getMode())
                 {
                 case CONSTRUCTION:
                     checks[0].set_active(true);
@@ -317,6 +318,7 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
             else
             {
                 std::cout << "Failed to load file: " << file_name << std::endl;
+                _jeu->setStatus(ERROR); // Reset the game state
                 // Disable buttons since the game state is cleared and no file is loaded
                 buttons[B_SAVE].set_sensitive(false);
                 buttons[B_START].set_sensitive(false);
@@ -473,13 +475,13 @@ S2d My_window::scaled(S2d const &pos) const
 void My_window::on_drawing_left_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
-    checks[0].set_active(true);
-    build_clicked();
-    checks[1].set_active(false);
-
+    
     // For Rendu 2, chain interaction is not implemented, but we still need to update
-    if (!activated && _jeu->getStatus() == ONGOING) // Game is paused and ongoing
+    if (!activated && (_jeu->getStatus() == ONGOING)) // Game is paused and ongoing
     {
+        checks[0].set_active(true);
+        build_clicked();
+        checks[1].set_active(false);
         _jeu->update();
         update_infos();
         drawing.queue_draw();
@@ -489,13 +491,13 @@ void My_window::on_drawing_left_click(int n_press, double x, double y)
 void My_window::on_drawing_right_click(int n_press, double x, double y)
 {
     S2d pos = scaled({x, y}); // Convert to model coordinates
-    checks[1].set_active(true);
-    guide_clicked();
-    checks[0].set_active(false);
-
+    
     // For Rendu 2, chain interaction is not implemented, but we still need to update
-    if (!activated && _jeu->getStatus() == ONGOING) // Game is paused and ongoing
+    if (!activated && (_jeu->getStatus() == ONGOING)) // Game is paused and ongoing
     {
+        checks[1].set_active(true);
+        guide_clicked();
+        checks[0].set_active(false);
         _jeu->update();
         update_infos();
         drawing.queue_draw();

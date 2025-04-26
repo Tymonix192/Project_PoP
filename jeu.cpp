@@ -713,3 +713,7 @@ size_t Jeu::get_faiseur_count() const {
 bool Jeu::save(const std::string& filename) {
     return saveToFile(filename);
 }
+
+void Jeu::setStatus(Status newStatus) {
+    status = newStatus;
+}

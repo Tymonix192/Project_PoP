@@ -14,8 +14,6 @@ int main(int argc, char* argv[]) {
     std::string filename = argv[1];
  
     auto jeu = std::make_unique<Jeu>();
-    int result = jeu->lecture(filename);
-    std::cout<<"here"<<std::endl;
 
     return start_gui_application(argc, argv, filename, std::move(jeu));
 }

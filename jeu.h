@@ -110,6 +110,7 @@ public:
     void clear();
     void draw() const;
     void set_mode(Mode mode);
+    void setStatus(Status newStatus);
     unsigned int get_score() const;
     size_t get_particle_count() const;
     size_t get_faiseur_count() const; 
