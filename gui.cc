@@ -299,7 +299,7 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
                 _jeu->setStatus(ONGOING); // Set the game status to ongoing
                 this->previous_file_name = file_name;
                 // Update mode based on the loaded file
-                switch (_jeu->getMode())
+                switch (_jeu->getMode() == "CONSTRUCTION" ? CONSTRUCTION : GUIDAGE)
                 {
                 case CONSTRUCTION:
                     checks[0].set_active(true);
