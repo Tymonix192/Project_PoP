@@ -450,38 +450,38 @@ bool Jeu::restart() {
 //Collision check
 bool Jeu::checkArticulationFaiseurCollision(const S2d& articulation,
     unsigned int articulationIndex) const {
-// Check each faiseur for collision with this articulation
-for (size_t i = 0; i < faiseurIndices.size(); ++i) {
-const Faiseur* faiseur = getFaiseur(i);
-if (!faiseur) continue;
+    // Check each faiseur for collision with this articulation
+    for (size_t i = 0; i < faiseurIndices.size(); ++i) {
+        const Faiseur* faiseur = getFaiseur(i);
+        if (!faiseur) continue;
 
-if (faiseur->collidesWithPoint(articulation)) {
-// Report the collision
-std::cout << message::chaine_articulation_collision(
-articulationIndex, i, 0); // Assuming first element is colliding
-return true;
-}
-}
-return false;
+        if (faiseur->collidesWithPoint(articulation)) {
+            // report the collision with the correct element index
+            // for rendu2 assuming collision with first element
+            std::cout << message::chaine_articulation_collision(
+            articulationIndex, i, 0); 
+            return true;
+        }
+    }
+    return false;
 }
 
 bool Jeu::checkChainFaiseurCollisions() {
-// If no articulations, no collision possible
-const std::vector<S2d>& articulations = chaine.getArticulations();
-if (articulations.empty()) {
-return false;
-}
+    // If no articulations, no collision possible
+    const std::vector<S2d>& articulations = chaine.getArticulations();
+    if (articulations.empty()) {
+        return false;
+    }
 
-// Check each articulation against all faiseurs
-for (size_t i = 0; i < articulations.size(); ++i) {
-if (checkArticulationFaiseurCollision(articulations[i], i)) {
-// Collision detected, clear the chain
-chaine.clear();
-return true;
-}
-}
-
-return false; // No collisions detected
+    // Check each articulation against all faiseurs
+    for (size_t i = 0; i < articulations.size(); ++i) {
+        if (checkArticulationFaiseurCollision(articulations[i], i)) {
+            // Collision detected, clear the chain
+            chaine.clear();
+            return true;
+        }
+    }
+    return false; // No collisions detected
 }
 
 unsigned int Jeu::getScore() const {
