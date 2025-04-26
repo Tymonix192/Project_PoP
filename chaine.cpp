@@ -87,4 +87,6 @@ void Chaine::draw() const {
             draw_line(prev, p, RED);
         }
     }
+    Circle c(articulations[articulations.size()-1], r_capt);
+    c.draw_outline(RED);
 } 
