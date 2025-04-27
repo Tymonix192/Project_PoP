@@ -83,7 +83,8 @@ bool Particule::shouldSplit() const {
 }
 
 // Create two new particles from this one
-void Particule::createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles) const {
+void Particule::createSplitParticles(
+    std::vector<std::unique_ptr<Particule>>& newParticles) const {
     // First new particle
     auto p1 = std::make_unique<Particule>(
         position,
@@ -174,7 +175,8 @@ Faiseur::Faiseur() :
     calculateElements();
 }
 
-Faiseur::Faiseur(const S2d& pos, double alpha, double disp, double rad, unsigned int nbe) :
+Faiseur::Faiseur(const S2d& pos, double alpha, double disp, 
+    double rad, unsigned int nbe) :
     Mobile(pos, alpha, disp), radius(rad), numElements(nbe) {
     calculateElements();
 }

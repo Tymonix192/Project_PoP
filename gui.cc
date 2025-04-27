@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #include <iostream>
 #include <cassert>
 #include "graphic_gui.h"
@@ -32,7 +33,8 @@ My_window::My_window(string file_name, Jeu* jeu)
       command_frame("General"),
       info_frame("Info : nombre de..."),
       activated(false),
-      buttons({Gtk::Button("exit"), Gtk::Button("open"), Gtk::Button("save"), Gtk::Button("restart"), Gtk::Button("start"), Gtk::Button("step")}),
+      buttons({Gtk::Button("exit"), Gtk::Button("open"), Gtk::Button("save"), 
+        Gtk::Button("restart"), Gtk::Button("start"), Gtk::Button("step")}),
       checks({Gtk::CheckButton("Construction"), Gtk::CheckButton("Guidage")}),
       info_text({Gtk::Label("score:"),
                  Gtk::Label("particules:"),
@@ -144,7 +146,9 @@ void My_window::start_clicked()
     }
     else if (_jeu->getStatus() == ONGOING) // Game can be started
     {
-        loop_conn = Glib::signal_timeout().connect(sigc::mem_fun(*this, &My_window::loop), 100); // 100 ms interval
+        loop_conn = 
+        Glib::signal_timeout().connect(sigc::mem_fun(*this, &My_window::loop), 100); 
+            // 100 ms interval
         activated = true;
         buttons[B_EXIT].set_sensitive(false);
         buttons[B_OPEN].set_sensitive(false);
@@ -320,7 +324,7 @@ void My_window::dialog_response(int response, Gtk::FileChooserDialog *dialog)
                 std::cout << "Failed to load file: " << file_name << std::endl;
                 _jeu->setStatus(ERROR); // Reset the game state
                 _jeu->clear();
-                // Disable buttons since the game state is cleared and no file is loaded
+                // Disable buttons since the game state cleared and no file is loaded
                 buttons[B_SAVE].set_sensitive(false);
                 buttons[B_START].set_sensitive(false);
                 buttons[B_STEP].set_sensitive(false);
@@ -554,7 +558,8 @@ void My_window::set_jeu(string file_name)
     drawing.queue_draw(); 
 }
 
-int start_gui_application(int argc, char* argv[], const std::string& filename, std::unique_ptr<Jeu> jeu) {
+int start_gui_application(int argc, char* argv[], 
+    const std::string& filename, std::unique_ptr<Jeu> jeu) {
     try {
         // Create the GTK application
         auto app = Gtk::Application::create("org.example.app");
@@ -576,9 +581,11 @@ int start_gui_application(int argc, char* argv[], const std::string& filename, s
                     delete window;
                 });
             } catch (const std::exception& e) {
-                std::cerr << "Exception when creating window: " << e.what() << std::endl;
+                std::cerr << "Exception when creating window: " << e.what()
+                 << std::endl;
             } catch (...) {
-                std::cerr << "Unknown exception occurred when creating window" << std::endl;
+                std::cerr << "Unknown exception occurred when creating window" 
+                << std::endl;
             }
         });
         

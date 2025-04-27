@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #include "tools.h"
 #include <cmath>
 
@@ -33,8 +34,10 @@ Circle::Circle(S2d center, double radius){
 
 bool Circle::check_intersect(Circle other_circle){
     double dist_c = distance(other_circle._center, _center);
-    if(dist_c > abs(other_circle._radius - _radius) && dist_c<other_circle._radius + _radius)
+    if(dist_c > abs(other_circle._radius - _radius) && 
+    dist_c<other_circle._radius + _radius) {
         return true;
+    }
     return false;    
 }
 
@@ -129,7 +132,8 @@ int Vector::set_length(double length){
 
 
 double Vector::bounce(S2d circle_center) {
-    S2d to_end = {_coordinate_end.x - circle_center.x, _coordinate_end.y - circle_center.y};
+    S2d to_end = {_coordinate_end.x - circle_center.x, 
+        _coordinate_end.y - circle_center.y};
     double beta = atan2(to_end.y, to_end.x);
     double new_angle = M_PI + 2 * beta - _angle;
     if (new_angle > M_PI) new_angle -= 2 * M_PI;
@@ -143,8 +147,10 @@ int Vector::add(Vector vector){
     return 0;
 }
 int Vector::multiply_const(double constant){
-    _coordinate_end.x = _coordinate_start.x + (_coordinate_end.x - _coordinate_start.x) * constant;
-    _coordinate_end.y = _coordinate_start.y + (_coordinate_end.y - _coordinate_start.y) * constant;
+    _coordinate_end.x = _coordinate_start.x + 
+        (_coordinate_end.x - _coordinate_start.x) * constant;
+    _coordinate_end.y = _coordinate_start.y + 
+        (_coordinate_end.y - _coordinate_start.y) * constant;
     _length *= fabs(constant);
     return 0;
 }
@@ -157,7 +163,8 @@ int Vector::subtract(Vector vector){
         Vector res;
         res.set_length(this->_length * constant);
         res.set_angle(this->_angle);
-        res._coordinate_end = (S2d){_coordinate_start.x+_length*cos(_angle),_coordinate_start.y+_length*sin(_angle)};
+        res._coordinate_end = (S2d){_coordinate_start.x+_length*cos(_angle),
+            _coordinate_start.y+_length*sin(_angle)};
         res._coordinate_start = this->_coordinate_start; 
         return res;
     }
@@ -173,8 +180,10 @@ int Vector::subtract(Vector vector){
     Vector Vector::operator-(const Vector& vector){
         Vector negated;
         negated._coordinate_start = vector._coordinate_start;
-        negated._coordinate_end.x = vector._coordinate_start.x - (vector._coordinate_end.x - vector._coordinate_start.x);
-        negated._coordinate_end.y = vector._coordinate_start.y - (vector._coordinate_end.y - vector._coordinate_start.y);
+        negated._coordinate_end.x = vector._coordinate_start.x - 
+            (vector._coordinate_end.x - vector._coordinate_start.x);
+        negated._coordinate_end.y = vector._coordinate_start.y - 
+            (vector._coordinate_end.y - vector._coordinate_start.y);
         negated._length = distance(negated._coordinate_start, negated._coordinate_end);
         negated._angle = atan2(negated._coordinate_end.y - negated._coordinate_start.y, 
                            negated._coordinate_end.x - negated._coordinate_start.x);

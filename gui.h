@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #ifndef GUI_H
 #define GUI_H
 
@@ -73,6 +74,7 @@ private:
     void set_jeu(std::string file_name);
 };
 
-int start_gui_application(int argc, char* argv[], const std::string& filename, std::unique_ptr<Jeu> jeu);
+int start_gui_application(int argc, char* argv[], const std::string& filename,
+     std::unique_ptr<Jeu> jeu);
 
 #endif

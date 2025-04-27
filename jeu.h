@@ -42,9 +42,12 @@ private:
 
     //attributs
     unsigned int score;           
-    std::vector<std::unique_ptr<Mobile>> mobiles;  // Polymorphic collection
-    std::vector<size_t> particuleIndices;          // Indices of particles in the mobiles vector
-    std::vector<size_t> faiseurIndices;            // Indices of makers in the mobiles vector
+    // Polymorphic collection
+    std::vector<std::unique_ptr<Mobile>> mobiles;
+    // Indices of particles in the mobiles vector
+    std::vector<size_t> particuleIndices;          
+    // Indices of makers in the mobiles vector
+    std::vector<size_t> faiseurIndices;
     Chaine chaine;   
     std::string lastLoadedFile;   
     Status status;                
@@ -76,7 +79,8 @@ private:
     // Update helpers
     void updateParticules();
     void updateFaiseurs();
-    void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, std::vector<size_t>& entityIndices);
+    void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
+        std::vector<size_t>& entityIndices);
     
     // Data management
     void clearGameData();

@@ -1,3 +1,4 @@
+//contributors: 399554 397957
 #include "chaine.h"
 #include <iostream>
 #include <sstream>
@@ -7,7 +8,8 @@ Chaine::Chaine() : _mode("CONSTRUCTION") {
     articulations.clear();
 };
 
-int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, double r_capture) {
+int Chaine::create_chain(int nbArt, std::vector<S2d> art, double r_max, 
+    double r_capture) {
     articulations.clear();
     r_capt = r_capture;
     if (nbArt != 0) {

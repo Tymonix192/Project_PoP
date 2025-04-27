@@ -98,7 +98,8 @@ int Jeu::handleParticleDataState(const std::string& line, unsigned int& particle
     }
     
     // Create particle
-    std::unique_ptr<Particule> particle(new Particule(S2d{x, y}, alpha, displacement, counter));
+    std::unique_ptr<Particule> particle(new Particule(S2d{x, y}, 
+        alpha, displacement, counter));
 
     if (!particle->isValid()) {
         return -1;
@@ -148,7 +149,8 @@ int Jeu::handleFaiseurDataState(const std::string& line, unsigned int& faiseurIn
     }
     
     // Create maker
-    std::unique_ptr<Faiseur> maker(new Faiseur(S2d{x, y}, alpha, displacement, radius, nbe));
+    std::unique_ptr<Faiseur> maker(new Faiseur(S2d{x, y}, alpha, displacement, 
+        radius, nbe));
     if (!maker->isValid()) {
         return -1;
     }
@@ -243,8 +245,10 @@ int Jeu::handleArticulationDataState(const std::string& line,
     return 0;
 }
 
-int Jeu::handleModeState(const std::string& line, const std::vector<S2d>& articulations,
-                        int totalArticulations, ReadState& nextState) {
+int Jeu::handleModeState(const std::string& line, 
+    const std::vector<S2d>& articulations, int totalArticulations, 
+    ReadState& nextState) {
+    
     std::string mode;
     std::istringstream iss(line);
     
@@ -476,12 +480,11 @@ bool Jeu::checkChainFaiseurCollisions() {
     // Check each articulation against all faiseurs
     for (size_t i = 0; i < articulations.size(); ++i) {
         if (checkArticulationFaiseurCollision(articulations[i], i)) {
-            // Collision detected, clear the chain
             chaine.clear();
             return true;
         }
     }
-    return false; // No collisions detected
+    return false;
 }
 
 unsigned int Jeu::getScore() const {
@@ -507,9 +510,9 @@ std::string Jeu::getMode() const {
 // Update
 
 bool Jeu::update() {
-    // Decrement score
+
     if (score <= 0) {
-        return false; // Game over (failure)
+        return false; // Game over
     }
     score--;
     
@@ -529,7 +532,6 @@ void Jeu::updateParticules() {
     std::vector<size_t> particlesToRemove;
     std::vector<std::unique_ptr<Particule>> newParticles;
     
-    // Process particles - increment counters and handle splitting
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
         Particule* p = getParticule(i);
         if (!p) continue;
@@ -537,7 +539,6 @@ void Jeu::updateParticules() {
         // Increment counter
         p->incrementCounter();
         
-        // Check if particle should split or be destroyed
         if (p->shouldSplit()) {
             if (particuleIndices.size() + newParticles.size() >= nb_particule_max) {
                 // Maximum particles reached - destroy this particle
@@ -552,14 +553,16 @@ void Jeu::updateParticules() {
         }
     }
     
-    // Move existing particles (except those marked for removal)
+    // Move existing particles
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
-        if (std::find(particlesToRemove.begin(), particlesToRemove.end(), i) != particlesToRemove.end()) {
-            continue; // Skip particles marked for removal
+        // Skip particles marked for removal
+        if (std::find(particlesToRemove.begin(), 
+        particlesToRemove.end(), i) != particlesToRemove.end()) {
+            continue;
         }
         
         Particule* p = getParticule(i);
-        if (p) p->move(); // Delegate movement to the particle itself
+        if (p) p->move();
     }
     
     // Move and add new particles
@@ -580,7 +583,7 @@ void Jeu::updateFaiseurs() {
         Faiseur* f = getFaiseur(i);
         if (!f) continue;
         
-        // Check if faiseur can move (no collisions with other faiseurs)
+        // Check if faiseur can move
         bool canMove = true;
         
         for (size_t j = 0; j < faiseurIndices.size(); ++j) {
@@ -609,7 +612,7 @@ void Jeu::updateFaiseurs() {
         
         // If no collisions with other faiseurs, move the faiseur
         if (canMove) {
-            f->move(); // Delegate movement to the faiseur itself
+            f->move();
         }
     }
 }
