@@ -682,7 +682,6 @@ void Jeu::clear()
 
 bool Jeu::set_jeu(const string& file_name) {
     if (!lecture(file_name)) {
-        std::cout << "Error reading file: " << file_name << std::endl;
         clear();
         return false;
     }
