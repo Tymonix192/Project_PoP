@@ -1,1 +1,0 @@
-particule at (72.000000;72.000000) is outside the arena
