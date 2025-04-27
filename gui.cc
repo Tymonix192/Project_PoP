@@ -43,7 +43,6 @@ My_window::My_window(string file_name, Jeu* jeu)
       previous_file_name(file_name),
      _jeu(jeu)
 {
-    std::cout<<"debug 0"<<std::endl;
     set_title("Linked-Crossing Challenge");
     set_child(main_box);
     main_box.append(panel_box);
