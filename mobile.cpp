@@ -110,7 +110,7 @@ void Particule::move() {
     
     // Check if would move outside arena
     double distFromOrigin = distance(nextPos, ORIGIN);
-    if (distFromOrigin > r_max) {
+    if (distFromOrigin > r_max - EPSIL_ZERO) {
         // Calculate bounce
         Vector moveVector;
         moveVector.set_coordinates(position, nextPos);
