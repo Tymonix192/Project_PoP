@@ -583,34 +583,25 @@ void Jeu::updateFaiseurs() {
         Faiseur* f = getFaiseur(i);
         if (!f) continue;
         
-        // Check if faiseur can move
+        // Calculate next position without changing the faiseur
+        S2d nextPos = f->calculateNextPosition();
         bool canMove = true;
         
+        // Check collision with other faiseurs
         for (size_t j = 0; j < faiseurIndices.size(); ++j) {
             if (i == j) continue; // Skip self
             
             Faiseur* otherF = getFaiseur(j);
             if (!otherF) continue;
             
-            // Temporarily calculate next position
-            S2d currentPos = f->getPosition();
-            S2d nextPos = f->calculateNextPosition();
-            
-            // Temporarily set position to check collision
-            f->setPosition(nextPos);
-            
-            if (f->collidesWithFaiseur(*otherF, i, j)) {
+            // Check if the hypothetical move would cause a collision
+            if (f->collidesWithFaiseur(*otherF, i, j, &nextPos)) {
                 canMove = false;
-                // Restore original position
-                f->setPosition(currentPos);
                 break;
             }
-            
-            // Restore original position
-            f->setPosition(currentPos);
         }
         
-        // If no collisions with other faiseurs, move the faiseur
+        // If no collisions would occur, move the faiseur
         if (canMove) {
             f->move();
         }

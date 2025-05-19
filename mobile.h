@@ -102,8 +102,8 @@ public:
     void calculateElements();
     void move() override;
     bool collidesWithPoint(const S2d& point) const;
-    bool collidesWithFaiseur(const Faiseur& other, 
-                            unsigned int thisId = 0, unsigned int otherId = 0) const;
+    bool collidesWithFaiseur(const Faiseur& other, unsigned int thisId = 0, 
+        unsigned int otherId = 0, const S2d* hypotheticalHeadPos = nullptr) const;
     
     // Overridden methods
     bool isValid() const override;

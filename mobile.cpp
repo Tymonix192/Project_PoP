@@ -334,24 +334,25 @@ bool Faiseur::collidesWithPoint(const S2d& point) const {
 }
 
 bool Faiseur::collidesWithFaiseur(const Faiseur& other, unsigned int thisId, 
-                                unsigned int otherId) const {
-    for (size_t i = 0; i < elements.size(); ++i) {
-        const S2d& elem1 = elements[i];
-        Circle circle1(elem1, radius);
-        
-        for (size_t j = 0; j < other.elements.size(); ++j) {
-            const S2d& elem2 = other.elements[j];
-            Circle circle2(elem2, other.radius);
-            
-            if (circles_intersect(circle1, circle2)) {
-                cout << message::faiseur_element_collision(thisId, i, otherId, j);
-                return true;
-            }
+    unsigned int otherId, const S2d* hypotheticalHeadPos) const {
+    // Use the hypothetical head position if provided, otherwise use the actual head
+    S2d headPos = hypotheticalHeadPos ? *hypotheticalHeadPos : elements[0];
+
+    // Create a circle for the head position
+    Circle headCircle(headPos, radius);
+
+    // Check against all elements of the other faiseur
+    for (size_t j = 0; j < other.elements.size(); ++j) {
+        const S2d& elem2 = other.elements[j];
+        Circle circle2(elem2, other.radius);
+
+        if (circles_intersect(headCircle, circle2)) {
+            cout << message::faiseur_element_collision(thisId, 0, otherId, j);
+            return true;
         }
     }
     return false;
 }
-
 // Debug
 void Faiseur::print() const {
     cout << "Faiseur: Head(" << position.x << ", " << position.y << "), "

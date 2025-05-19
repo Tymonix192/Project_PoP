@@ -6,7 +6,7 @@
 #include <iostream>
 #include "graphic.h"
 
-constexpr float EPSIL_ZERO = 0.0;
+constexpr float EPSIL_ZERO = 0.5;
 
 struct S2d {double x=0; double y=0;};
 
