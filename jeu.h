@@ -81,6 +81,9 @@ private:
     void updateFaiseurs();
     void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
         std::vector<size_t>& entityIndices);
+    void checkWinCondition();
+    void checkLossCondition();
+    void endGame(Status newStatus, const std::string& message);
     
     // Data management
     void clearGameData();

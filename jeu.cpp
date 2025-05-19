@@ -510,11 +510,15 @@ std::string Jeu::getMode() const {
 // Update
 
 bool Jeu::update() {
-
-    if (score <= 0) {
-        return false; // Game over
+    // Check if game is already over
+    if (status != ONGOING) {
+        return false;
     }
-    score--;
+    
+    // Decrement score but don't let it go negative
+    if (score > 0) {
+        score--;
+    }
     
     // Update all entities
     updateParticules();
@@ -525,7 +529,16 @@ bool Jeu::update() {
         checkChainFaiseurCollisions();
     }
     
-    return true; // Update successful
+    // Check win condition
+    checkWinCondition();
+    
+    // Check loss condition (score reached 0 or other loss conditions)
+    if (score <= 0) {
+        checkLossCondition();
+    }
+    
+    // Return false if game ended during this update
+    return (status == ONGOING);
 }
 
 void Jeu::updateParticules() {
@@ -641,6 +654,38 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
             mobiles.erase(mobiles.begin() + mobileIdx);
         }
     }
+}
+
+void Jeu::checkWinCondition() {
+    // Check for win condition (if the chain's effecteur reaches the goal)
+    const std::vector<S2d>& articulations = chaine.getArticulations();
+    if (!articulations.empty()) {
+        // Get the effecteur (last articulation)
+        S2d effecteur = articulations.back();
+        
+        // Calculate goal position (opposite to root)
+        S2d root = articulations.front();
+        double angleToRoot = atan2(root.y, root.x);
+        double angleToGoal = angleToRoot + M_PI;
+        S2d goal = {r_max * cos(angleToGoal), r_max * sin(angleToGoal)};
+        
+        // Check if effecteur is close enough to goal
+        if (distance(effecteur, goal) <= r_capture) {
+            endGame(WON, "Congratulations! You won with a score of " + std::to_string(score) + "!");
+        }
+    }
+}
+
+void Jeu::checkLossCondition() {
+    if (score <= 0) {
+        endGame(LOST, "Game over! Your final score is 0.");
+    }
+}
+
+void Jeu::endGame(Status newStatus, const std::string& message) {
+    status = newStatus;
+    score = (newStatus == LOST) ? 0 : score; // Set score to 0 for loss
+    std::cout << message << std::endl;
 }
 
 
