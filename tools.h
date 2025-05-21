@@ -4,6 +4,7 @@
 
 #include <vector>
 #include <iostream>
+#include <cmath>
 #include "graphic.h"
 
 constexpr double EPSIL_ZERO = 0.5;

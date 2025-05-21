@@ -94,26 +94,28 @@ void Chaine::draw() const {
         c.draw_outline(RED);
     }
 } 
+
 S2d Chaine::calculateCaptureCenter(const S2d& mousePos, double arenaRadius) const {
     if (articulations.empty()) {
-        // No chain yet, project to boundary using Point and Circle classes
-        Point mouse;
-        mouse.set_center(mousePos);
+        if (fabs(mousePos.x) < EPSIL_ZERO && fabs(mousePos.y) < EPSIL_ZERO) {
+            return S2d{arenaRadius, 0}; // Default to point on positive x-axis
+        }
         
-        // Create arena circle
-        Circle arena(ORIGIN, arenaRadius);
+        double dirX = mousePos.x;
+        double dirY = mousePos.y;
         
-        // Calculate direction from origin to mouse
-        Vector direction;
-        direction.set_coordinates(ORIGIN, mousePos);
+        // Calculate distance from origin to mouse
+        double distToMouse = sqrt(dirX*dirX + dirY*dirY);
+        double normalizedX = dirX / distToMouse;
+        double normalizedY = dirY / distToMouse;
         
-        // Normalize the direction and scale to arena radius
-        direction.set_length(arenaRadius);
+        // Scale to arena radius
+        double boundaryX = normalizedX * arenaRadius;
+        double boundaryY = normalizedY * arenaRadius;
         
-        // Return the point on boundary
-        return direction.get_end();
+        return S2d{boundaryX, boundaryY};
     } else {
-        // Use effecteur as center
+        // Use the last articulation (effecteur) as center
         return articulations.back();
     }
 }
@@ -124,21 +126,23 @@ S2d Chaine::calculateFinalGoal(double arenaRadius) const {
     }
     
     // Get the root position
-    S2d root = articulations.front();
+    const S2d& root = articulations.front();
+    double dirX = -root.x;
+    double dirY = -root.y;
     
-    // For a point directly opposite on a circle, we simply negate the coordinates
-    // and normalize to the arena radius
+    // Get length of the direction vector
+    double length = sqrt(dirX*dirX + dirY*dirY);
     
-    // Create a vector from the origin to the opposite direction
-    Vector toGoal;
-    // Use negative of root coordinates to go in opposite direction
-    toGoal.set_coordinates(ORIGIN, {-root.x, -root.y});
+    // Handle special case where root is at origin (should never happen, but just in case)
+    if (length < EPSIL_ZERO) {
+        return S2d{arenaRadius, 0}; // Default to point on positive x-axis
+    }
     
-    // Scale to arena radius
-    toGoal.set_length(arenaRadius);
+    // Normalize and scale to arena radius
+    double normalizedX = dirX / length;
+    double normalizedY = dirY / length;
     
-    // Return endpoint on boundary
-    return toGoal.get_end();
+    return S2d{normalizedX * arenaRadius, normalizedY * arenaRadius};
 }
 
 S2d Chaine::calculateIntermediateGoal(const S2d& mousePos, double captureRadius) const {
@@ -246,6 +250,11 @@ bool Chaine::applyGuidanceAlgorithm(const S2d& goalPos, std::vector<S2d>& newPos
 }
 
 bool Chaine::guideTo(const S2d& goalPos, double arenaRadius, double captureRadius) {
+    // Check if chain has at least two articulations
+    if (articulations.size() < 2) {
+        return false;
+    }
+    
     std::vector<S2d> newPositions;
     
     // Apply the guidance algorithm
@@ -253,6 +262,14 @@ bool Chaine::guideTo(const S2d& goalPos, double arenaRadius, double captureRadiu
         return false; // Guidance failed
     }
     
+    // Check if any articulation (except root) would go outside arena
+    for (size_t i = 1; i < newPositions.size(); ++i) {
+        if (distance(newPositions[i], ORIGIN) >= arenaRadius - EPSIL_ZERO) {
+            return false; // Would move articulation outside
+        }
+    }
+    
     // Create new chain with updated positions
-    return create_chain(newPositions.size(), newPositions, arenaRadius, captureRadius) >= 0;
+    articulations = newPositions;
+    return true;
 }
