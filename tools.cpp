@@ -137,7 +137,7 @@ double Vector::bounce(S2d circle_center) {
     S2d to_end = {_coordinate_end.x - circle_center.x, 
         _coordinate_end.y - circle_center.y};
     double beta = atan2(to_end.y, to_end.x);
-    double new_angle = M_PI + 2 * beta - _angle;
+    double new_angle = M_PI + (2 * beta - _angle);
     if (new_angle > M_PI) new_angle -= 2 * M_PI;
     else if (new_angle <= -M_PI) new_angle += 2 * M_PI;
     return new_angle;

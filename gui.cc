@@ -146,7 +146,7 @@ void My_window::start_clicked()
     else if (_jeu->getStatus() == ONGOING) // Game can be started
     {
         loop_conn = 
-        Glib::signal_timeout().connect(sigc::mem_fun(*this, &My_window::loop), 100); 
+        Glib::signal_timeout().connect(sigc::mem_fun(*this, &My_window::loop), 32); 
             // 100 ms interval
         activated = true;
         buttons[B_EXIT].set_sensitive(false);

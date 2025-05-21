@@ -91,14 +91,12 @@ void Particule::createSplitParticles(
         alpha + delta_split,
         displacement * coef_split
     );
-    
     // Second new particle
     auto p2 = std::make_unique<Particule>(
         position,
         alpha - delta_split,
         displacement * coef_split
     );
-    
     // Add both to the provided vector
     newParticles.push_back(std::move(p1));
     newParticles.push_back(std::move(p2));
