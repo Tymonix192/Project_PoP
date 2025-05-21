@@ -88,8 +88,10 @@ int Vector::set_coordinates(S2d start_point, S2d end_point){
     _coordinate_start = start_point;
     _coordinate_end = end_point;
     _length = distance(start_point, end_point);
-    if(start_point.x != end_point.x)
-        _angle = atan2(end_point.y - start_point.y, end_point.x - start_point.x);
+    
+    // Always calculate angle regardless of x-coordinate values
+    _angle = atan2(end_point.y - start_point.y, end_point.x - start_point.x);
+    
     return 0;
 };
 

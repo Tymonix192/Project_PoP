@@ -69,7 +69,7 @@ public:
     bool shouldSplit() const;
     void createSplitParticles(std::vector<std::unique_ptr<Particule>>& newParticles)
      const;
-    
+    bool canBeCaptured(const S2d& center, double captureRadius) const;
     // Overridden methods
     bool isValid() const override;
     bool isInArena() const override;

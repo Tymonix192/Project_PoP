@@ -476,41 +476,42 @@ S2d My_window::scaled(S2d const &pos) const
             ratio * (height / 2 - pos.y)};
 }
 
-void My_window::on_drawing_left_click(int n_press, double x, double y)
-{
+void My_window::on_drawing_left_click(int n_press, double x, double y) {
     S2d pos = scaled({x, y}); // Convert to model coordinates
     
-    // For Rendu 2, chain interaction is not implemented, but we still need to update
-    if (!activated && (_jeu->getStatus() == ONGOING)) // Game is paused and ongoing
-    {
-        checks[0].set_active(true);
+    if (!activated && (_jeu->getStatus() == ONGOING)) { // Game is paused and ongoing
+        checks[0].set_active(true); // Set to construction mode
         build_clicked();
         checks[1].set_active(false);
+        
+        // Attempt to construct the chain at the clicked position
+        _jeu->handle_left_click(pos);
         _jeu->update();
         update_infos();
         drawing.queue_draw();
     }
 }
 
-void My_window::on_drawing_right_click(int n_press, double x, double y)
-{
+void My_window::on_drawing_right_click(int n_press, double x, double y) {
     S2d pos = scaled({x, y}); // Convert to model coordinates
     
-    // For Rendu 2, chain interaction is not implemented, but we still need to update
-    if (!activated && (_jeu->getStatus() == ONGOING)) // Game is paused and ongoing
-    {
-        checks[1].set_active(true);
+    if (!activated && (_jeu->getStatus() == ONGOING)) { // Game is paused and ongoing
+        checks[1].set_active(true); // Set to guidance mode
         guide_clicked();
         checks[0].set_active(false);
+        _jeu->handle_right_click(pos);
         _jeu->update();
         update_infos();
         drawing.queue_draw();
     }
 }
-void My_window::on_drawing_move(double x, double y)
-{
+
+void My_window::on_drawing_move(double x, double y) {
     S2d pos = scaled({x, y}); // Convert to model coordinates
-    // Placeholder: no chain interaction in rendu2
+    
+    // Pass mouse position to the game to update capture region and goals
+    _jeu->handle_mouse_move(pos);
+    drawing.queue_draw(); // Update the display
 }
 
 

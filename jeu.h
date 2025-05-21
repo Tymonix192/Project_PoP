@@ -51,7 +51,13 @@ private:
     Chaine chaine;   
     std::string lastLoadedFile;   
     Status status;                
-
+    // UI state variables
+    S2d mousePosition;      // Current mouse position
+    S2d captureCenter;      // Center of capture region
+    S2d intermediateGoal;   // Goal for chain guidance
+    S2d finalGoal;          // Final goal opposite to root
+    bool showCaptureRegion; // Display flag
+    bool showGoal;          // Display flag
     
     // Helper methods for entity access
     Particule* getParticule(size_t index);
@@ -81,13 +87,18 @@ private:
     void updateFaiseurs();
     void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
         std::vector<size_t>& entityIndices);
-    void checkWinCondition();
     void checkLossCondition();
     void endGame(Status newStatus, const std::string& message);
     
     // Data management
     void clearGameData();
     
+    bool tryParticleCapture();
+    bool findCaptureCandidate(size_t& particleIndex);
+    bool checkWinCondition();
+    void drawGameElements() const;
+    void drawCaptureMechanism(const S2d& captureCenter, bool showCaptureRegion) const;
+    void drawGoals(const S2d& finalGoal, const S2d& intermediateGoal, bool showGoal) const;
     // Collision detection methods
     bool checkArticulationFaiseurCollision(const S2d& articulation, 
                                          unsigned int articulationIndex) const;
@@ -122,6 +133,9 @@ public:
     size_t get_particle_count() const;
     size_t get_faiseur_count() const; 
     size_t get_articulation_count() const;
+    void handle_mouse_move(const S2d& mousePos);
+    void handle_left_click(const S2d& clickPos);
+    void handle_right_click(const S2d& clickPos);
 };
 
 #endif

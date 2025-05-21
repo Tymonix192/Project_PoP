@@ -656,24 +656,125 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
     }
 }
 
-void Jeu::checkWinCondition() {
-    // Check for win condition (if the chain's effecteur reaches the goal)
-    const std::vector<S2d>& articulations = chaine.getArticulations();
-    if (!articulations.empty()) {
-        // Get the effecteur (last articulation)
-        S2d effecteur = articulations.back();
+
+void Jeu::handle_mouse_move(const S2d& mousePos) {
+    mousePosition = mousePos;
+    
+    // Update capture center based on current state
+    captureCenter = chaine.calculateCaptureCenter(mousePos, r_max);
+    showCaptureRegion = true;
+    
+    // Update goals if chain exists
+    if (!chaine.getArticulations().empty()) {
+        finalGoal = chaine.calculateFinalGoal(r_max);
+        intermediateGoal = chaine.calculateIntermediateGoal(mousePos, r_capture);
+        showGoal = true;
+    }
+}
+
+void Jeu::handle_right_click(const S2d& clickPos) {
+    // Switch to guidance mode
+    chaine.set_mode("GUIDAGE");
+    
+    // Apply chain guidance if chain exists
+    if (!chaine.getArticulations().empty()) {
+        // Calculate intermediate goal
+        intermediateGoal = chaine.calculateIntermediateGoal(mousePosition, r_capture);
         
-        // Calculate goal position (opposite to root)
-        S2d root = articulations.front();
-        double angleToRoot = atan2(root.y, root.x);
-        double angleToGoal = angleToRoot + M_PI;
-        S2d goal = {r_max * cos(angleToGoal), r_max * sin(angleToGoal)};
+        // Apply guidance algorithm
+        chaine.guideTo(intermediateGoal, r_max, r_capture);
         
-        // Check if effecteur is close enough to goal
-        if (distance(effecteur, goal) <= r_capture) {
-            endGame(WON, "Congratulations! You won with a score of " + std::to_string(score) + "!");
+        // Check win condition after guidance
+        checkWinCondition();
+    }
+}
+
+void Jeu::handle_left_click(const S2d& clickPos) {
+    // Switch to construction mode
+    chaine.set_mode("CONSTRUCTION");
+    
+    // Try to capture a particle
+    tryParticleCapture();
+}
+
+bool Jeu::findCaptureCandidate(size_t& particleIndex) {
+    std::vector<size_t> particlesInRange;
+    
+    // Find all particles within capture radius
+    for (size_t i = 0; i < particuleIndices.size(); ++i) {
+        Particule* particle = getParticule(i);
+        if (!particle) continue;
+        
+        if (particle->canBeCaptured(captureCenter, r_capture)) {
+            particlesInRange.push_back(i);
         }
     }
+    
+    // Can only capture if exactly one particle is in range
+    if (particlesInRange.size() == 1) {
+        particleIndex = particlesInRange[0];
+        return true;
+    }
+    
+    return false;
+}
+
+bool Jeu::tryParticleCapture() {
+    size_t particleIndex;
+    
+    // Find a particle that can be captured
+    if (findCaptureCandidate(particleIndex)) {
+        Particule* particle = getParticule(particleIndex);
+        if (!particle) return false;
+        
+        // Create updated chain with new articulation
+        const std::vector<S2d>& articulations = chaine.getArticulations();
+        std::vector<S2d> newArticulations = articulations;
+        newArticulations.push_back(particle->getPosition());
+        
+        // Try to create the new chain
+        int result = chaine.create_chain(newArticulations.size(), newArticulations, r_max, r_capture);
+        if (result < 0) {
+            return false; // Chain creation failed
+        }
+        
+        // Remove the captured particle
+        std::vector<size_t> toRemove = {particleIndex};
+        removeMarkedEntities(toRemove, particuleIndices);
+        
+        // Update goals if this is the first articulation
+        if (articulations.empty()) {
+            finalGoal = chaine.calculateFinalGoal(r_max);
+            showGoal = true;
+        }
+        
+        // Check win condition after adding an articulation
+        checkWinCondition();
+        
+        return true;
+    }
+    
+    return false;
+}
+
+bool Jeu::checkWinCondition() {
+    const std::vector<S2d>& articulations = chaine.getArticulations();
+    if (articulations.size() < 2) {
+        return false; // Need at least root and effecteur
+    }
+    
+    // Get effecteur and final goal
+    S2d effecteur = articulations.back();
+    S2d goal = chaine.calculateFinalGoal(r_max);
+    
+    // Check if effecteur is within capture radius of goal
+    if (distance(effecteur, goal) <= r_capture) {
+        endGame(WON, "Congratulations! Chain has reached the goal with a score of " 
+            + std::to_string(score) + "!");
+        return true;
+    }
+    
+    return false;
 }
 
 void Jeu::checkLossCondition() {
@@ -694,15 +795,46 @@ Status Jeu::getStatus() const {
     return this->status;
 }
 
-void Jeu::draw() const{
-    // Draw the game state
+void Jeu::drawGameElements() const {
+    // Draw arena
     Circle arena(ORIGIN, r_max);
     arena.draw_outline(Color::GREEN);
+    
     // Draw all mobiles
     for (const auto& mobile : mobiles) {
         mobile->draw();
     }
+    
+    // Draw chain
     chaine.draw();
+}
+
+void Jeu::drawCaptureMechanism(const S2d& captureCenter, bool showCaptureRegion) const {
+    if (showCaptureRegion) {
+        Circle captureCircle(captureCenter, r_capture);
+        captureCircle.draw_outline(Color::RED);
+    }
+}
+
+void Jeu::drawGoals(const S2d& finalGoal, const S2d& intermediateGoal, bool showGoal) const {
+    if (showGoal) {
+        // Draw final goal
+        Circle goalCircle(finalGoal, r_viz);
+        goalCircle.draw(Color::BLACK);
+        
+        // Draw intermediate goal in guidance mode
+        if (chaine.get_mode() == "GUIDAGE" && chaine.getArticulations().size() >= 2) {
+            Circle intermediateCircle(intermediateGoal, r_viz);
+            intermediateCircle.draw(Color::BLACK);
+        }
+    }
+}
+
+// Main draw method now calls the helper functions
+void Jeu::draw() const {
+    drawGameElements();
+    drawCaptureMechanism(captureCenter, showCaptureRegion);
+    drawGoals(finalGoal, intermediateGoal, showGoal);
 }
 
 void Jeu::clear()

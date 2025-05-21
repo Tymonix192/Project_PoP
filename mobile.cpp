@@ -159,6 +159,11 @@ bool Particule::isValid() const {
     return true;
 }
 
+bool Particule::canBeCaptured(const S2d& center, double captureRadius) const {
+    // Check if particle is within capture radius
+    return distance(position, center) <= captureRadius;
+}
+
 // Debug
 void Particule::print() const {
     cout << "Particule: Position(" << position.x << ", " << position.y << "), "
