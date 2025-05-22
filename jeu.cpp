@@ -730,7 +730,6 @@ void Jeu::handle_left_click(const S2d& clickPos) {
     // Switch to construction mode
     chaine.set_mode("CONSTRUCTION");
     
-    // Try to capture a particle - don't call update here
     tryParticleCapture();
 }
 
@@ -897,12 +896,11 @@ bool Jeu::set_jeu(const string& file_name) {
 }
 
 void Jeu::set_mode(Mode mode) {
-    if (mode == CONSTRUCTION){
+    if (mode == CONSTRUCTION) {
         chaine.set_mode("CONSTRUCTION");
-    }else if(mode == GUIDAGE){
+    } else if (mode == GUIDAGE) {
         chaine.set_mode("GUIDAGE");
     }
-    
 }
 
 unsigned int Jeu::get_score() const {

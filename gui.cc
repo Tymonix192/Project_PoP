@@ -146,12 +146,14 @@ void My_window::start_clicked()
         buttons[B_RESTART].set_sensitive(true);
         buttons[B_START].set_label("start");
         buttons[B_STEP].set_sensitive(true);
+        // Keep checkboxes enabled for mode switching
+        checks[0].set_sensitive(true);
+        checks[1].set_sensitive(true);
     }
     else if (_jeu->getStatus() == ONGOING) // Game can be started
     {
         loop_conn = 
         Glib::signal_timeout().connect(sigc::mem_fun(*this, &My_window::loop), 32); 
-            // 100 ms interval
         activated = true;
         buttons[B_EXIT].set_sensitive(false);
         buttons[B_OPEN].set_sensitive(false);
@@ -159,6 +161,9 @@ void My_window::start_clicked()
         buttons[B_RESTART].set_sensitive(false);
         buttons[B_START].set_label("stop");
         buttons[B_STEP].set_sensitive(false);
+        // KEEP checkboxes enabled during continuous mode for mode switching
+        checks[0].set_sensitive(true);
+        checks[1].set_sensitive(true);
     }
 }
 
@@ -206,14 +211,14 @@ void My_window::check_and_handle_game_end()
 }
 
 void My_window::build_clicked() {
-    // Only change mode if game is not running and is ongoing
-    if (!activated && _jeu->getStatus() == ONGOING) {
+    // Allow mode changes during both paused and continuous mode if game is ongoing
+    if (_jeu->getStatus() == ONGOING) {
         _jeu->set_mode(CONSTRUCTION);
     }
 }
 void My_window::guide_clicked() {
-    // Only change mode if game is not running and is ongoing
-    if (!activated && _jeu->getStatus() == ONGOING) {
+    // Allow mode changes during both paused and continuous mode if game is ongoing
+    if (_jeu->getStatus() == ONGOING) {
         _jeu->set_mode(GUIDAGE);
     }
 }
@@ -404,9 +409,12 @@ void My_window::update()
     drawing.queue_draw(); // Refresh the display
     counter += 1;
 
+    // Check if game ended and handle accordingly
     if (_jeu->getStatus() != ONGOING)
     {
-        loop_conn.disconnect(); // Stop the timer
+        if (loop_conn.connected()) {
+            loop_conn.disconnect(); // Stop the timer
+        }
         activated = false;
         buttons[B_EXIT].set_sensitive(true);
         buttons[B_OPEN].set_sensitive(true);
@@ -518,8 +526,8 @@ void My_window::on_drawing_left_click(int n_press, double x, double y) {
     
     S2d pos = scaled({x, y});
     
-    // Only process clicks when game is paused and ongoing
-    if (activated || _jeu->getStatus() != ONGOING) {
+    // Allow clicks during both paused AND continuous mode if game is ongoing
+    if (_jeu->getStatus() != ONGOING) {
         return;
     }
     
@@ -534,8 +542,10 @@ void My_window::on_drawing_left_click(int n_press, double x, double y) {
     // Handle the click
     _jeu->handle_left_click(pos);
     
-    // Single update and refresh
-    update_display();
+    // Only call update if game is paused (continuous mode handles its own updates)
+    if (!activated) {
+        update_display();
+    }
 }
 
 void My_window::on_drawing_right_click(int n_press, double x, double y) {
@@ -551,8 +561,8 @@ void My_window::on_drawing_right_click(int n_press, double x, double y) {
     
     S2d pos = scaled({x, y});
     
-    // Only process clicks when game is paused and ongoing
-    if (activated || _jeu->getStatus() != ONGOING) {
+    // Allow clicks during both paused AND continuous mode if game is ongoing
+    if (_jeu->getStatus() != ONGOING) {
         return;
     }
     
@@ -567,8 +577,10 @@ void My_window::on_drawing_right_click(int n_press, double x, double y) {
     // Handle the click
     _jeu->handle_right_click(pos);
     
-    // Single update and refresh
-    update_display();
+    // Only call update if game is paused (continuous mode handles its own updates)
+    if (!activated) {
+        update_display();
+    }
 }
 
 void My_window::on_drawing_move(double x, double y) {
@@ -582,7 +594,7 @@ void My_window::on_drawing_move(double x, double y) {
     
     S2d pos = scaled({x, y});
     
-    // Always update mouse position for visual feedback
+    // Always update mouse position for visual feedback regardless of game state
     _jeu->handle_mouse_move(pos);
     
     // Only queue draw, don't force immediate update
