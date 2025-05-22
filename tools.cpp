@@ -134,13 +134,23 @@ int Vector::set_length(double length){
 
 
 double Vector::bounce(S2d circle_center) {
-    S2d to_end = {_coordinate_end.x - circle_center.x, 
+    S2d normal = {_coordinate_end.x - circle_center.x, 
         _coordinate_end.y - circle_center.y};
-    double beta = atan2(to_end.y, to_end.x);
-    double new_angle = M_PI + (2 * beta - _angle);
-    if (new_angle > M_PI) new_angle -= 2 * M_PI;
-    else if (new_angle <= -M_PI) new_angle += 2 * M_PI;
-    return new_angle;
+    double normal_lenght = sqrt(normal.x * normal.x + normal.y * normal.y);
+    //if at the center
+    if (normal_lenght < EPSIL_ZERO) return _angle + M_PI;
+    normal.x /= normal_lenght;
+    normal.y /= normal_lenght;
+    S2d incident = {cos(_angle), sin(_angle)};
+    double dot_product = incident.x * normal.x + incident.y * normal.y;
+    S2d reflected = {
+        incident.x - 2.0 * dot_product * normal.x,
+        incident.y - 2.0 * dot_product * normal.y
+    };
+    double beta = atan2(reflected.y, reflected.x);
+    if (beta > M_PI) beta -= 2 * M_PI;
+    else if (beta <= -M_PI) beta += 2 * M_PI;
+    return beta;
 }
 
 int Vector::add(Vector vector){
