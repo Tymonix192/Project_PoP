@@ -97,23 +97,15 @@ void Chaine::draw() const {
 
 S2d Chaine::calculateCaptureCenter(const S2d& mousePos, double arenaRadius) const {
     if (articulations.empty()) {
-        if (fabs(mousePos.x) < EPSIL_ZERO && fabs(mousePos.y) < EPSIL_ZERO) {
-            return S2d{arenaRadius, 0}; // Default to point on positive x-axis
+        // Check for mouse at origin to avoid division by zero
+        double mouseDistance = distance(mousePos, ORIGIN);
+        if (mouseDistance < EPSIL_ZERO) {
+            return S2d{arenaRadius - EPSIL_ZERO, 0}; // Default to edge of arena
         }
         
-        double dirX = mousePos.x;
-        double dirY = mousePos.y;
-        
-        // Calculate distance from origin to mouse
-        double distToMouse = sqrt(dirX*dirX + dirY*dirY);
-        double normalizedX = dirX / distToMouse;
-        double normalizedY = dirY / distToMouse;
-        
-        // Scale to arena radius
-        double boundaryX = normalizedX * arenaRadius;
-        double boundaryY = normalizedY * arenaRadius;
-        
-        return S2d{boundaryX, boundaryY};
+        // Project mouse position to arena boundary
+        double scale = (arenaRadius - EPSIL_ZERO) / mouseDistance;
+        return S2d{mousePos.x * scale, mousePos.y * scale};
     } else {
         // Use the last articulation (effecteur) as center
         return articulations.back();
@@ -150,17 +142,26 @@ S2d Chaine::calculateIntermediateGoal(const S2d& mousePos, double captureRadius)
         return mousePos; // No effecteur yet
     }
     
-    // Use Vector to calculate direction from effecteur to mouse
-    Vector toMouse;
-    toMouse.set_coordinates(articulations.back(), mousePos);
+    const S2d& effecteur = articulations.back();
     
-    // Limit to capture radius
-    if (toMouse.get_length() > captureRadius) {
-        toMouse.set_length(captureRadius);
+    // Calculate direction from effecteur to mouse
+    double dx = mousePos.x - effecteur.x;
+    double dy = mousePos.y - effecteur.y;
+    double distToMouse = sqrt(dx * dx + dy * dy);
+    
+    // If mouse is very close to effecteur, return mouse position
+    if (distToMouse < EPSIL_ZERO) {
+        return mousePos;
     }
     
-    // Return the limited position
-    return toMouse.get_end();
+    // Limit to capture radius
+    if (distToMouse <= captureRadius) {
+        return mousePos;
+    } else {
+        // Scale to capture radius
+        double scale = captureRadius / distToMouse;
+        return S2d{effecteur.x + dx * scale, effecteur.y + dy * scale};
+    }
 }
 
 std::vector<double> Chaine::calculateSegmentLengths() const {
@@ -188,65 +189,63 @@ bool Chaine::checkPositionsInArena(const std::vector<S2d>& positions,
 }
 
 bool Chaine::applyGuidanceAlgorithm(const S2d& goalPos, std::vector<S2d>& newPositions,
-                                   double captureRadius) const {
+    double captureRadius) const {
     if (articulations.size() < 2) {
         return false; // Need at least root and effecteur
     }
-    
+
     // Get segment lengths
     std::vector<double> lengths = calculateSegmentLengths();
-    
+
     // First iteration: from effecteur to root (Fig 8a)
     std::vector<S2d> tempPositions = articulations;
     tempPositions.back() = goalPos; // Place effecteur at goal
-    
+
     // Work backwards from effecteur to root
     for (int i = articulations.size() - 2; i >= 0; --i) {
-        // Use Vector class for all calculations
+        // Calculate direction from current temp position to original position
         Vector link;
-        link.set_coordinates(articulations[i+1], articulations[i]);
-        
+        link.set_coordinates(tempPositions[i+1], articulations[i]);
+
         // Check for zero length
         if (link.get_length() < EPSIL_ZERO) {
             return false; // Avoid division by zero
         }
-        
-        // Create new vector from this tempPosition in the same direction
+
+        // Set the new position at correct distance in same direction
         Vector newLink;
-        newLink.set_coordinates(tempPositions[i+1], tempPositions[i+1]); // Start at same point
+        newLink.set_coordinates(tempPositions[i+1], tempPositions[i+1]);
         newLink.set_angle(link.get_angle());
         newLink.set_length(lengths[i]);
-        
-        // Set new position
+
         tempPositions[i] = newLink.get_end();
     }
-    
+
     // Second iteration: from root to effecteur (Fig 8b)
     newPositions.resize(articulations.size());
     newPositions[0] = articulations[0]; // Root position is fixed
-    
+
     // Work forwards from root to effecteur
     for (size_t i = 1; i < articulations.size(); ++i) {
-        // Use Vector class for all calculations
+        // Calculate direction from previous temp position to current temp position
         Vector link;
         link.set_coordinates(tempPositions[i-1], tempPositions[i]);
-        
+
         // Check for zero length
         if (link.get_length() < EPSIL_ZERO) {
             return false; // Avoid division by zero
         }
-        
-        // Create new vector from fixed position in the same direction
+
+        // Set the new position at correct distance in same direction
         Vector newLink;
-        newLink.set_coordinates(newPositions[i-1], newPositions[i-1]); // Start at fixed point
+        newLink.set_coordinates(newPositions[i-1], newPositions[i-1]);
         newLink.set_angle(link.get_angle());
         newLink.set_length(lengths[i-1]);
-        
-        // Set new position
+
         newPositions[i] = newLink.get_end();
     }
-    
-    return checkPositionsInArena(newPositions, captureRadius);
+
+    return true;
 }
 
 bool Chaine::guideTo(const S2d& goalPos, double arenaRadius, double captureRadius) {
@@ -258,7 +257,7 @@ bool Chaine::guideTo(const S2d& goalPos, double arenaRadius, double captureRadiu
     std::vector<S2d> newPositions;
     
     // Apply the guidance algorithm
-    if (!applyGuidanceAlgorithm(goalPos, newPositions, arenaRadius)) {
+    if (!applyGuidanceAlgorithm(goalPos, newPositions, captureRadius)) {
         return false; // Guidance failed
     }
     
@@ -269,7 +268,7 @@ bool Chaine::guideTo(const S2d& goalPos, double arenaRadius, double captureRadiu
         }
     }
     
-    // Create new chain with updated positions
+    // Update chain with new positions
     articulations = newPositions;
     return true;
 }

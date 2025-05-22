@@ -58,6 +58,7 @@ private:
 
     bool loop();
     void update();
+    void update_display();
 
     void set_infos();
     void update_infos();

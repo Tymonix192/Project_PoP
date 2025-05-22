@@ -89,6 +89,10 @@ private:
         std::vector<size_t>& entityIndices);
     void checkLossCondition();
     void endGame(Status newStatus, const std::string& message);
+    void updateEntities();
+    void updateChain();
+    void applyChainGuidance();
+    void checkGameEndConditions();
     
     // Data management
     void clearGameData();

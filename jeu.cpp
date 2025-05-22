@@ -515,29 +515,20 @@ bool Jeu::update() {
         return false;
     }
     
-    // Decrement score but don't let it go negative
+    // Decrement score
     if (score > 0) {
         score--;
     }
     
     // Update all entities
-    updateParticules();
-    updateFaiseurs();
+    updateEntities();
     
-    // Check for collisions between chain and faiseurs
-    if (!chaine.getArticulations().empty()) {
-        checkChainFaiseurCollisions();
-    }
+    // Handle chain-related updates
+    updateChain();
     
-    // Check win condition
-    checkWinCondition();
+    // Check game end conditions
+    checkGameEndConditions();
     
-    // Check loss condition (score reached 0 or other loss conditions)
-    if (score <= 0) {
-        checkLossCondition();
-    }
-    
-    // Return false if game ended during this update
     return (status == ONGOING);
 }
 
@@ -621,6 +612,48 @@ void Jeu::updateFaiseurs() {
     }
 }
 
+void Jeu::updateEntities() {
+    updateParticules();
+    updateFaiseurs();
+}
+
+void Jeu::updateChain() {
+    if (chaine.getArticulations().empty()) {
+        return;
+    }
+    
+    // Check for collisions between chain and faiseurs
+    if (checkChainFaiseurCollisions()) {
+        return; // Chain was destroyed
+    }
+    
+    // Apply guidance if in guidance mode
+    applyChainGuidance();
+    
+    // Check for collisions again after guidance
+    checkChainFaiseurCollisions();
+}
+
+void Jeu::applyChainGuidance() {
+    if (chaine.get_mode() != "GUIDAGE" || chaine.getArticulations().size() < 2) {
+        return;
+    }
+    
+    // Use the stored mouse position for consistency
+    S2d intermediateGoal = chaine.calculateIntermediateGoal(mousePosition, r_capture);
+    
+    // Try to apply guidance - if it fails, just continue
+    chaine.guideTo(intermediateGoal, r_max, r_capture);
+}
+
+void Jeu::checkGameEndConditions() {
+    checkWinCondition();
+    
+    if (score <= 0) {
+        checkLossCondition();
+    }
+}
+
 void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
                               std::vector<size_t>& entityIndices) {
     // Sort indices in descending order to avoid index shifting issues
@@ -658,42 +691,46 @@ void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove,
 
 
 void Jeu::handle_mouse_move(const S2d& mousePos) {
+    // Store the mouse position
     mousePosition = mousePos;
     
-    // Update capture center based on current state
+    // Validate mouse position is within reasonable bounds
+    double distFromCenter = distance(mousePos, ORIGIN);
+    if (distFromCenter > r_max * 2) {
+        // Mouse is too far from arena, don't update visual elements
+        showCaptureRegion = false;
+        showGoal = false;
+        return;
+    }
+    
+    // Always update capture center for visual feedback
     captureCenter = chaine.calculateCaptureCenter(mousePos, r_max);
     showCaptureRegion = true;
     
     // Update goals if chain exists
     if (!chaine.getArticulations().empty()) {
         finalGoal = chaine.calculateFinalGoal(r_max);
-        intermediateGoal = chaine.calculateIntermediateGoal(mousePos, r_capture);
         showGoal = true;
+        
+        // Only calculate intermediate goal if we have an effecteur
+        if (chaine.getArticulations().size() >= 2) {
+            intermediateGoal = chaine.calculateIntermediateGoal(mousePos, r_capture);
+        }
+    } else {
+        showGoal = false;
     }
 }
 
 void Jeu::handle_right_click(const S2d& clickPos) {
     // Switch to guidance mode
     chaine.set_mode("GUIDAGE");
-    
-    // Apply chain guidance if chain exists
-    if (!chaine.getArticulations().empty()) {
-        // Calculate intermediate goal
-        intermediateGoal = chaine.calculateIntermediateGoal(mousePosition, r_capture);
-        
-        // Apply guidance algorithm
-        chaine.guideTo(intermediateGoal, r_max, r_capture);
-        
-        // Check win condition after guidance
-        checkWinCondition();
-    }
 }
 
 void Jeu::handle_left_click(const S2d& clickPos) {
     // Switch to construction mode
     chaine.set_mode("CONSTRUCTION");
     
-    // Try to capture a particle
+    // Try to capture a particle - don't call update here
     tryParticleCapture();
 }
 
@@ -720,41 +757,43 @@ bool Jeu::findCaptureCandidate(size_t& particleIndex) {
 }
 
 bool Jeu::tryParticleCapture() {
+    if (particuleIndices.empty()) {
+        return false;
+    }
+    
     size_t particleIndex;
     
     // Find a particle that can be captured
-    if (findCaptureCandidate(particleIndex)) {
-        Particule* particle = getParticule(particleIndex);
-        if (!particle) return false;
-        
-        // Create updated chain with new articulation
-        const std::vector<S2d>& articulations = chaine.getArticulations();
-        std::vector<S2d> newArticulations = articulations;
-        newArticulations.push_back(particle->getPosition());
-        
-        // Try to create the new chain
-        int result = chaine.create_chain(newArticulations.size(), newArticulations, r_max, r_capture);
-        if (result < 0) {
-            return false; // Chain creation failed
-        }
-        
-        // Remove the captured particle
-        std::vector<size_t> toRemove = {particleIndex};
-        removeMarkedEntities(toRemove, particuleIndices);
-        
-        // Update goals if this is the first articulation
-        if (articulations.empty()) {
-            finalGoal = chaine.calculateFinalGoal(r_max);
-            showGoal = true;
-        }
-        
-        // Check win condition after adding an articulation
-        checkWinCondition();
-        
-        return true;
+    if (!findCaptureCandidate(particleIndex)) {
+        return false;
     }
     
-    return false;
+    Particule* particle = getParticule(particleIndex);
+    if (!particle) {
+        return false;
+    }
+    
+    // Create updated chain with new articulation
+    const std::vector<S2d>& articulations = chaine.getArticulations();
+    std::vector<S2d> newArticulations = articulations;
+    newArticulations.push_back(particle->getPosition());
+    
+    // Try to create the new chain
+    if (chaine.create_chain(newArticulations.size(), newArticulations, r_max, r_capture) < 0) {
+        return false;
+    }
+    
+    // Remove the captured particle
+    std::vector<size_t> toRemove = {particleIndex};
+    removeMarkedEntities(toRemove, particuleIndices);
+    
+    // Update goals if this is the first articulation
+    if (articulations.empty()) {
+        finalGoal = chaine.calculateFinalGoal(r_max);
+        showGoal = true;
+    }
+    
+    return true;
 }
 
 bool Jeu::checkWinCondition() {
@@ -823,16 +862,11 @@ void Jeu::drawCaptureMechanism(const S2d& captureCenter, bool showCaptureRegion)
 }
 
 void Jeu::drawGoals(const S2d& finalGoal, const S2d& intermediateGoal, bool showGoal) const {
-    if (showGoal) {
-        // Draw final goal
-        Circle goalCircle(finalGoal, r_viz);
-        goalCircle.draw(Color::BLACK);
-        
-        // Draw intermediate goal in guidance mode
-        if (chaine.get_mode() == "GUIDAGE" && chaine.getArticulations().size() >= 2) {
-            Circle intermediateCircle(intermediateGoal, r_viz);
-            intermediateCircle.draw(Color::BLACK);
-        }
+    if (showGoal && !chaine.getArticulations().empty()) {
+        // Draw final goal as a black point
+        Point goalPoint;
+        goalPoint.set_center(finalGoal);
+        goalPoint.draw(Color::BLACK);
     }
 }
 

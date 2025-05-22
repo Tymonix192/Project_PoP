@@ -162,17 +162,12 @@ void My_window::start_clicked()
     }
 }
 
-void My_window::step_clicked()
-{
-    if (_jeu->getStatus() == ONGOING) // Only update if the game is ongoing
-    {
-        _jeu->update();
-        update_infos();      // Update the info labels (score, particle count, etc.)
-        drawing.queue_draw(); // Refresh the drawing area
-
-        // Check if the game has ended after the update
-        check_and_handle_game_end();
+void My_window::step_clicked() {
+    if (_jeu->getStatus() != ONGOING) {
+        return;
     }
+    
+    update_display();
 }
 
 void My_window::check_and_handle_game_end()
@@ -210,13 +205,17 @@ void My_window::check_and_handle_game_end()
     }
 }
 
-void My_window::build_clicked()
-{
-    _jeu->set_mode(CONSTRUCTION);
+void My_window::build_clicked() {
+    // Only change mode if game is not running and is ongoing
+    if (!activated && _jeu->getStatus() == ONGOING) {
+        _jeu->set_mode(CONSTRUCTION);
+    }
 }
-void My_window::guide_clicked()
-{
-    _jeu->set_mode(GUIDAGE);
+void My_window::guide_clicked() {
+    // Only change mode if game is not running and is ongoing
+    if (!activated && _jeu->getStatus() == ONGOING) {
+        _jeu->set_mode(GUIDAGE);
+    }
 }
 void My_window::set_key_controller()
 {
@@ -492,58 +491,112 @@ void My_window::set_mouse_controller()
 
 // cette fonction convertit l'entrée pos contenant les coordonnées (x,y) de la souris 
 // dans l'espace GTKmm vers l'espace du Modèle => sortie de la fonction.
-S2d My_window::scaled(S2d const &pos) const
-{
+S2d My_window::scaled(S2d const &pos) const {
     int width = drawing.get_width();
     int height = drawing.get_height();
-    double ratio((2 * r_max) / min(width, height));
-    return {ratio * (-width / 2 + pos.x),
-            ratio * (height / 2 - pos.y)};
+    if (width <= 0 || height <= 0) {
+        return {0, 0};
+    }
+    double side = std::min(width, height);
+    double ratio = (2 * r_max) / side;
+    double world_x = ratio * (pos.x - width / 2.0);
+    double world_y = ratio * (height / 2.0 - pos.y);
+    
+    return {world_x, world_y};
 }
 
 void My_window::on_drawing_left_click(int n_press, double x, double y) {
-    S2d pos = scaled({x, y}); // Convert to model coordinates
+    if (n_press != 1) return;
     
-    if (!activated && (_jeu->getStatus() == ONGOING)) { // Game is paused and ongoing
-        checks[0].set_active(true); // Set to construction mode
-        build_clicked();
-        checks[1].set_active(false);
-        
-        // Attempt to construct the chain at the clicked position
-        _jeu->handle_left_click(pos);
-        _jeu->update();
-        update_infos();
-        drawing.queue_draw();
-        
-        // Check if game ended after this action
-        check_and_handle_game_end();
+    // Validate click coordinates
+    int width = drawing.get_width();
+    int height = drawing.get_height();
+    
+    if (x < 0 || y < 0 || x > width || y > height) {
+        return; // Ignore clicks outside drawing area
     }
+    
+    S2d pos = scaled({x, y});
+    
+    // Only process clicks when game is paused and ongoing
+    if (activated || _jeu->getStatus() != ONGOING) {
+        return;
+    }
+    
+    // Update mouse position first to ensure consistency
+    _jeu->handle_mouse_move(pos);
+    
+    // Set construction mode and update UI
+    _jeu->set_mode(CONSTRUCTION);
+    checks[0].set_active(true);
+    checks[1].set_active(false);
+    
+    // Handle the click
+    _jeu->handle_left_click(pos);
+    
+    // Single update and refresh
+    update_display();
 }
 
 void My_window::on_drawing_right_click(int n_press, double x, double y) {
-    S2d pos = scaled({x, y}); // Convert to model coordinates
+    if (n_press != 1) return;
     
-    if (!activated && (_jeu->getStatus() == ONGOING)) { // Game is paused and ongoing
-        checks[1].set_active(true); // Set to guidance mode
-        guide_clicked();
-        checks[0].set_active(false);
-        _jeu->handle_right_click(pos);
-        _jeu->update();
-        update_infos();
-        drawing.queue_draw();
-        
-        // Check if game ended after this action
-        check_and_handle_game_end();
+    // Validate click coordinates
+    int width = drawing.get_width();
+    int height = drawing.get_height();
+    
+    if (x < 0 || y < 0 || x > width || y > height) {
+        return; // Ignore clicks outside drawing area
     }
-}
-void My_window::on_drawing_move(double x, double y) {
-    S2d pos = scaled({x, y}); // Convert to model coordinates
     
-    // Pass mouse position to the game to update capture region and goals
+    S2d pos = scaled({x, y});
+    
+    // Only process clicks when game is paused and ongoing
+    if (activated || _jeu->getStatus() != ONGOING) {
+        return;
+    }
+    
+    // Update mouse position first to ensure consistency
     _jeu->handle_mouse_move(pos);
-    drawing.queue_draw(); // Update the display
+    
+    // Set guidance mode and update UI
+    _jeu->set_mode(GUIDAGE);
+    checks[1].set_active(true);
+    checks[0].set_active(false);
+    
+    // Handle the click
+    _jeu->handle_right_click(pos);
+    
+    // Single update and refresh
+    update_display();
 }
 
+void My_window::on_drawing_move(double x, double y) {
+    // Validate coordinates are within drawing area
+    int width = drawing.get_width();
+    int height = drawing.get_height();
+    
+    if (x < 0 || y < 0 || x > width || y > height) {
+        return; // Ignore coordinates outside drawing area
+    }
+    
+    S2d pos = scaled({x, y});
+    
+    // Always update mouse position for visual feedback
+    _jeu->handle_mouse_move(pos);
+    
+    // Only queue draw, don't force immediate update
+    drawing.queue_draw();
+}
+
+void My_window::update_display() {
+    if (_jeu->getStatus() == ONGOING) {
+        _jeu->update();
+    }
+    update_infos();
+    drawing.queue_draw();
+    check_and_handle_game_end();
+}
 
 void My_window::set_jeu(string file_name)
 {
