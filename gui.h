@@ -40,7 +40,7 @@ private:
 	std::unique_ptr<Jeu> _jeu;
 
     void set_commands();
-
+    void check_and_handle_game_end();
     void exit_clicked();
     void open_clicked();
     void save_clicked();

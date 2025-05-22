@@ -113,6 +113,7 @@ void My_window::restart_clicked()
     //initialise the game from the last loaded file
     if (_jeu->restart())
     {
+        _jeu->setStatus(ONGOING);
         _jeu->clear();
         _jeu->set_jeu(previous_file_name);
         drawing.queue_draw(); // Refresh the drawing area
@@ -123,7 +124,10 @@ void My_window::restart_clicked()
         buttons[B_SAVE].set_sensitive(true);
         buttons[B_RESTART].set_sensitive(true);
         buttons[B_START].set_label("start");
+        buttons[B_START].set_sensitive(true);
         buttons[B_STEP].set_sensitive(true);
+        checks[0].set_sensitive(true);
+        checks[1].set_sensitive(true);
     }
     else
     {
@@ -167,21 +171,42 @@ void My_window::step_clicked()
         drawing.queue_draw(); // Refresh the drawing area
 
         // Check if the game has ended after the update
-        if (_jeu->getStatus() != ONGOING)
-        {
-            activated = false; // Ensure the game remains paused
-            buttons[B_EXIT].set_sensitive(true);
-            buttons[B_OPEN].set_sensitive(true);
-            buttons[B_SAVE].set_sensitive(false); // Disable save if game is over
-            buttons[B_RESTART].set_sensitive(true);
-            buttons[B_START].set_label("start");
-            buttons[B_START].set_sensitive(false); // Disable start if game is over
-            buttons[B_STEP].set_sensitive(false); // Disable step if game is over
-            checks[0].set_active(true);
-            checks[0].set_sensitive(false);
-            checks[1].set_sensitive(false);
+        check_and_handle_game_end();
+    }
+}
 
+void My_window::check_and_handle_game_end()
+{
+    if (_jeu->getStatus() != ONGOING && activated)
+    {
+        // Game has ended, stop the loop and update button states
+        if (loop_conn.connected())
+        {
+            loop_conn.disconnect();
         }
+        activated = false;
+        
+        // Update button states for game end
+        buttons[B_EXIT].set_sensitive(true);
+        buttons[B_OPEN].set_sensitive(true);
+        buttons[B_SAVE].set_sensitive(false); // Disable save when game is over
+        buttons[B_RESTART].set_sensitive(true);
+        buttons[B_START].set_label("start");
+        buttons[B_START].set_sensitive(false); // Disable start when game is over
+        buttons[B_STEP].set_sensitive(false); // Disable step when game is over
+        checks[0].set_active(true);
+        checks[0].set_sensitive(false);
+        checks[1].set_sensitive(false);
+    }
+    else if (_jeu->getStatus() != ONGOING && !activated)
+    {
+        // Game has ended and we're not in continuous mode
+        buttons[B_SAVE].set_sensitive(false); // Disable save when game is over
+        buttons[B_START].set_sensitive(false); // Disable start when game is over
+        buttons[B_STEP].set_sensitive(false); // Disable step when game is over
+        checks[0].set_active(true);
+        checks[0].set_sensitive(false);
+        checks[1].set_sensitive(false);
     }
 }
 
@@ -489,6 +514,9 @@ void My_window::on_drawing_left_click(int n_press, double x, double y) {
         _jeu->update();
         update_infos();
         drawing.queue_draw();
+        
+        // Check if game ended after this action
+        check_and_handle_game_end();
     }
 }
 
@@ -503,9 +531,11 @@ void My_window::on_drawing_right_click(int n_press, double x, double y) {
         _jeu->update();
         update_infos();
         drawing.queue_draw();
+        
+        // Check if game ended after this action
+        check_and_handle_game_end();
     }
 }
-
 void My_window::on_drawing_move(double x, double y) {
     S2d pos = scaled({x, y}); // Convert to model coordinates
     

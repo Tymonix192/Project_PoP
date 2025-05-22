@@ -38,7 +38,7 @@ void Mobile::setAlpha(double a) {
     //alpha is within [-π, π]
     while (a > M_PI)
         a -= 2 * M_PI;
-    while (a < -M_PI)
+    while (a <= -M_PI)
         a += 2 * M_PI;
     alpha = a;
 }

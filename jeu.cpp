@@ -768,9 +768,15 @@ bool Jeu::checkWinCondition() {
     S2d goal = chaine.calculateFinalGoal(r_max);
     
     // Check if effecteur is within capture radius of goal
-    if (distance(effecteur, goal) <= r_capture) {
-        endGame(WON, "Congratulations! Chain has reached the goal with a score of " 
-            + std::to_string(score) + "!");
+    double distanceTogoal = distance(effecteur, goal);
+    if (distanceTogoal <= r_capture) {
+        std::string winMessage = std::string("Congratulations! Chaine has reached the goal!\n") +
+        std::string("Final score: ") + std::to_string(score) + std::string("\n") +
+        std::string("Distance between chaine tip and goal: ") + std::to_string(distanceTogoal) +
+        std::string("\n") +
+        std::string("Capture radius: ") + std::to_string(r_capture) + std::string("\n");
+
+        endGame(WON, winMessage);
         return true;
     }
     

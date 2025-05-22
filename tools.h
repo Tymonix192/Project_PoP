@@ -51,7 +51,7 @@ class Circle: public Point{
 
 class Vector{
     public:
-    int set_coordinates(S2d start, S2d end);
+        int set_coordinates(S2d start, S2d end);
         S2d get_start();
         S2d get_end();
         int set_angle(double angle);
