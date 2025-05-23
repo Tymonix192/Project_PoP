@@ -134,8 +134,8 @@ int Vector::set_length(double length){
 
 
 double Vector::bounce(S2d circle_center) {
-    S2d normal = {_coordinate_end.x - circle_center.x, 
-        _coordinate_end.y - circle_center.y};
+    S2d normal = {_coordinate_start.x - circle_center.x, 
+        _coordinate_start.y - circle_center.y};
     double normal_lenght = sqrt(normal.x * normal.x + normal.y * normal.y);
     //if at the center
     if (normal_lenght < EPSIL_ZERO) return _angle + M_PI;
