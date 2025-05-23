@@ -221,3 +221,74 @@ void draw_line(Point p1, Point p2, Color color) {
     graphic_draw_line(p1.get_center().x, p1.get_center().y,
                       p2.get_center().x, p2.get_center().y, color);
 }
+
+//rendu3 addition
+// Point class methods
+S2d Point::directionTo(const Point& other) const {
+    S2d direction = {other._point.x - _point.x, other._point.y - _point.y};
+    double length = sqrt(direction.x * direction.x + direction.y * direction.y);
+    
+    if (length < EPSIL_ZERO) {
+        return S2d{1.0, 0.0}; // Default direction
+    }
+    
+    return S2d{direction.x / length, direction.y / length};
+}
+
+Point Point::placeAtDistance(const S2d& direction, double distance) const {
+    Point result;
+    result.set_center({_point.x + direction.x * distance, 
+                      _point.y + direction.y * distance});
+    return result;
+}
+
+// Vector class methods
+Vector Vector::normalize() const {
+    Vector result = *this;
+    if (_length > EPSIL_ZERO) {
+        result.set_length(1.0);
+    }
+    return result;
+}
+
+Vector Vector::scaleToLength(double targetLength) const {
+    Vector result = *this;
+    result.set_length(targetLength);
+    return result;
+}
+
+S2d Vector::getUnitDirection() const {
+    if (_length < EPSIL_ZERO) {
+        return S2d{1.0, 0.0}; // Default direction
+    }
+    return S2d{cos(_angle), sin(_angle)};
+}
+
+bool Vector::isZeroLength() const {
+    return _length < EPSIL_ZERO;
+}
+
+// Standalone utility functions
+S2d normalizeToLength(const S2d& from, const S2d& to, double targetLength) {
+    double dx = to.x - from.x;
+    double dy = to.y - from.y;
+    double currentLength = sqrt(dx * dx + dy * dy);
+    
+    if (currentLength < EPSIL_ZERO) {
+        return from; // Avoid division by zero
+    }
+    
+    double scale = targetLength / currentLength;
+    return S2d{from.x + dx * scale, from.y + dy * scale};
+}
+
+S2d calculateDirection(const S2d& from, const S2d& to) {
+    S2d direction = {to.x - from.x, to.y - from.y};
+    double length = sqrt(direction.x * direction.x + direction.y * direction.y);
+    
+    if (length < EPSIL_ZERO) {
+        return S2d{1.0, 0.0}; // Default direction
+    }
+    
+    return S2d{direction.x / length, direction.y / length};
+}

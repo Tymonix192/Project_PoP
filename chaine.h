@@ -18,6 +18,16 @@ private:
         double arenaRadius) const;
     bool applyGuidanceAlgorithm(const S2d& goalPos, std::vector<S2d>& newPositions, 
         double captureRadius) const;
+    double calculateTotalLength() const;
+    bool isGoalReachable(const S2d& goalPos) const;
+    bool handleUnreachableGoal(const S2d& goalPos, 
+        std::vector<S2d>& newPositions) const;
+    void performBackwardPass(const S2d& goalPos, std::vector<S2d>& positions, 
+        const std::vector<double>& lengths) const;
+    void performForwardPass(std::vector<S2d>& positions, 
+        const std::vector<double>& lengths) const;
+    bool hasConverged(const std::vector<S2d>& positions, 
+        const S2d& goalPos, double tolerance) const;
 public:
     Chaine();
     int create_chain(int nbArt, std::vector<S2d> articulaton, double r_max, 

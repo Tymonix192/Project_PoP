@@ -139,29 +139,21 @@ S2d Chaine::calculateFinalGoal(double arenaRadius) const {
 
 S2d Chaine::calculateIntermediateGoal(const S2d& mousePos, double captureRadius) const {
     if (articulations.size() < 2) {
-        return mousePos; // No effecteur yet
+        return mousePos;
     }
     
     const S2d& effecteur = articulations.back();
+    double distToMouse = distance(effecteur, mousePos);
     
-    // Calculate direction from effecteur to mouse
-    double dx = mousePos.x - effecteur.x;
-    double dy = mousePos.y - effecteur.y;
-    double distToMouse = sqrt(dx * dx + dy * dy);
-    
-    // If mouse is very close to effecteur, return mouse position
     if (distToMouse < EPSIL_ZERO) {
         return mousePos;
     }
     
-    // Limit to capture radius
     if (distToMouse <= captureRadius) {
         return mousePos;
-    } else {
-        // Scale to capture radius
-        double scale = captureRadius / distToMouse;
-        return S2d{effecteur.x + dx * scale, effecteur.y + dy * scale};
     }
+    
+    return normalizeToLength(effecteur, mousePos, captureRadius);
 }
 
 std::vector<double> Chaine::calculateSegmentLengths() const {
@@ -188,87 +180,119 @@ bool Chaine::checkPositionsInArena(const std::vector<S2d>& positions,
     return true;
 }
 
+bool Chaine::isGoalReachable(const S2d& goalPos) const {
+    if (articulations.empty()) {
+        return false;
+    }
+    
+    double totalLength = calculateTotalLength();
+    double distToGoal = distance(articulations[0], goalPos);
+    return distToGoal <= totalLength;
+}
+
+// Helper: Calculate total chain length
+double Chaine::calculateTotalLength() const {
+    double total = 0;
+    for (size_t i = 1; i < articulations.size(); ++i) {
+        total += distance(articulations[i-1], articulations[i]);
+    }
+    return total;
+}
+
+// Helper: Handle unreachable goal case - uses tools functions
+bool Chaine::handleUnreachableGoal(const S2d& goalPos, std::vector<S2d>& newPositions) const {
+    S2d direction = calculateDirection(articulations[0], goalPos);
+    std::vector<double> lengths = calculateSegmentLengths();
+    
+    newPositions[0] = articulations[0]; // Root stays fixed
+    S2d currentPos = articulations[0];
+    
+    for (size_t i = 1; i < articulations.size(); ++i) {
+        currentPos.x += direction.x * lengths[i-1];
+        currentPos.y += direction.y * lengths[i-1];
+        newPositions[i] = currentPos;
+    }
+    return true;
+}
+
+// Helper: Perform backward pass - uses tools functions
+void Chaine::performBackwardPass(const S2d& goalPos, std::vector<S2d>& positions, 
+                                const std::vector<double>& lengths) const {
+    positions[positions.size() - 1] = goalPos;
+    
+    for (int i = static_cast<int>(positions.size()) - 2; i >= 0; --i) {
+        S2d direction = calculateDirection(positions[i + 1], positions[i]);
+        positions[i].x = positions[i + 1].x + direction.x * lengths[i];
+        positions[i].y = positions[i + 1].y + direction.y * lengths[i];
+    }
+}
+
+// Helper: Perform forward pass - uses tools functions
+void Chaine::performForwardPass(std::vector<S2d>& positions, 
+                               const std::vector<double>& lengths) const {
+    positions[0] = articulations[0];
+    
+    for (size_t i = 1; i < positions.size(); ++i) {
+        S2d direction = calculateDirection(positions[i - 1], positions[i]);
+        positions[i].x = positions[i - 1].x + direction.x * lengths[i - 1];
+        positions[i].y = positions[i - 1].y + direction.y * lengths[i - 1];
+    }
+}
+
+// Helper: Check convergence
+bool Chaine::hasConverged(const std::vector<S2d>& positions, 
+                         const S2d& goalPos, double tolerance) const {
+    double distToGoal = distance(positions.back(), goalPos);
+    return distToGoal < tolerance;
+}
+
+// Main guidance algorithm - now properly organized
 bool Chaine::applyGuidanceAlgorithm(const S2d& goalPos, std::vector<S2d>& newPositions,
     double captureRadius) const {
+    
     if (articulations.size() < 2) {
-        return false; // Need at least root and effecteur
+        return false;
     }
 
-    // Get segment lengths
     std::vector<double> lengths = calculateSegmentLengths();
-
-    // First iteration: from effecteur to root (Fig 8a)
-    std::vector<S2d> tempPositions = articulations;
-    tempPositions.back() = goalPos; // Place effecteur at goal
-
-    // Work backwards from effecteur to root
-    for (int i = articulations.size() - 2; i >= 0; --i) {
-        // Calculate direction from current temp position to original position
-        Vector link;
-        link.set_coordinates(tempPositions[i+1], articulations[i]);
-
-        // Check for zero length
-        if (link.get_length() < EPSIL_ZERO) {
-            return false; // Avoid division by zero
-        }
-
-        // Set the new position at correct distance in same direction
-        Vector newLink;
-        newLink.set_coordinates(tempPositions[i+1], tempPositions[i+1]);
-        newLink.set_angle(link.get_angle());
-        newLink.set_length(lengths[i]);
-
-        tempPositions[i] = newLink.get_end();
+    newPositions = articulations;
+    
+    // Check if goal is reachable - chain-specific logic
+    if (!isGoalReachable(goalPos)) {
+        return handleUnreachableGoal(goalPos, newPositions);
     }
-
-    // Second iteration: from root to effecteur (Fig 8b)
-    newPositions.resize(articulations.size());
-    newPositions[0] = articulations[0]; // Root position is fixed
-
-    // Work forwards from root to effecteur
-    for (size_t i = 1; i < articulations.size(); ++i) {
-        // Calculate direction from previous temp position to current temp position
-        Vector link;
-        link.set_coordinates(tempPositions[i-1], tempPositions[i]);
-
-        // Check for zero length
-        if (link.get_length() < EPSIL_ZERO) {
-            return false; // Avoid division by zero
+    
+    // Iterative FABRIK algorithm
+    const int maxIterations = 10;
+    const double tolerance = 0.1;
+    
+    for (int iter = 0; iter < maxIterations; ++iter) {
+        performBackwardPass(goalPos, newPositions, lengths);
+        performForwardPass(newPositions, lengths);
+        
+        if (hasConverged(newPositions, goalPos, tolerance)) {
+            break;
         }
-
-        // Set the new position at correct distance in same direction
-        Vector newLink;
-        newLink.set_coordinates(newPositions[i-1], newPositions[i-1]);
-        newLink.set_angle(link.get_angle());
-        newLink.set_length(lengths[i-1]);
-
-        newPositions[i] = newLink.get_end();
     }
-
+    
     return true;
 }
 
 bool Chaine::guideTo(const S2d& goalPos, double arenaRadius, double captureRadius) {
-    // Check if chain has at least two articulations
     if (articulations.size() < 2) {
         return false;
     }
     
     std::vector<S2d> newPositions;
     
-    // Apply the guidance algorithm
     if (!applyGuidanceAlgorithm(goalPos, newPositions, captureRadius)) {
-        return false; // Guidance failed
+        return false;
     }
     
-    // Check if any articulation (except root) would go outside arena
-    for (size_t i = 1; i < newPositions.size(); ++i) {
-        if (distance(newPositions[i], ORIGIN) >= arenaRadius - EPSIL_ZERO) {
-            return false; // Would move articulation outside
-        }
+    if (!checkPositionsInArena(newPositions, arenaRadius)) {
+        return false;
     }
     
-    // Update chain with new positions
     articulations = newPositions;
     return true;
 }

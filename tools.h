@@ -17,16 +17,17 @@ struct S2d {double x=0; double y=0;};
 // If the circles arent inside each other, returns NULL
 
 
-class Point{
+class Point {
     public:
         Point() = default;
         virtual int set_center(S2d coordinates);
         virtual S2d get_center();
         double distance_org(); // returns distance from origin
         virtual int draw(Color color = Color::GREEN);
+        S2d directionTo(const Point& other) const;
+        Point placeAtDistance(const S2d& direction, double distance) const;   
     private:
         S2d _point;
-        
 };
 
 
@@ -49,7 +50,7 @@ class Circle: public Point{
 };
 
 
-class Vector{
+class Vector {
     public:
         int set_coordinates(S2d start, S2d end);
         S2d get_start();
@@ -65,17 +66,22 @@ class Vector{
         Vector operator*(double constant);
         Vector operator+(const Vector& vector);
         Vector operator-(const Vector& vector);
+        Vector normalize() const;
+        Vector scaleToLength(double targetLength) const;
+        S2d getUnitDirection() const;
+        bool isZeroLength() const;
+        
     private:
         double _angle;
         double _length;
         S2d _coordinate_start;
         S2d _coordinate_end;
+};
 
-    };
-
+S2d normalizeToLength(const S2d& from, const S2d& to, double targetLength);
+S2d calculateDirection(const S2d& from, const S2d& to);
 bool circles_intersect(Circle circle_1, Circle circle_);
 Circle* circles_inside(Circle* circle_1, Circle* circle_2); 
 double distance(S2d point1, S2d point2);
 void draw_line(Point point_1, Point point_2, Color color);
-
 #endif
