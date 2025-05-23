@@ -13,7 +13,7 @@ Jeu::Jeu() : score(0), lastLoadedFile(""), status(ONGOING) {
 }
 
 // Helper methods for type-safe entity access
-Particule* Jeu::getParticule(size_t index) {
+Particule* Jeu::getParticule(size_t index) const{
     if (index >= particuleIndices.size()) return nullptr;
     return static_cast<Particule*>(mobiles[particuleIndices[index]].get());
 }
@@ -654,6 +654,62 @@ void Jeu::checkGameEndConditions() {
     }
 }
 
+bool Jeu::isParticleCapturable(size_t particleIndex, const S2d& captureCenter) const {
+    Particule* particle = getParticule(particleIndex);
+    if (!particle) {
+        return false;
+    }
+    
+    double distToCapture = distance(particle->getPosition(), captureCenter);
+    return distToCapture <= r_capture - EPSIL_ZERO;
+}
+
+bool Jeu::validateRootPlacement(const S2d& root) const {
+    double distFromOrigin = distance(root, ORIGIN);
+    
+    // Root should be close to arena boundary but inside
+    return (distFromOrigin + r_capture + EPSIL_ZERO >= r_max) && 
+           (distFromOrigin < r_max);
+}
+
+bool Jeu::validateArticulationDistances(const std::vector<S2d>& articulations) const {
+    for (size_t i = 1; i < articulations.size(); ++i) {
+        double dist = distance(articulations[i-1], articulations[i]);
+        if (dist > r_capture + EPSIL_ZERO) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Jeu::validateChainCollisions(const std::vector<S2d>& articulations) const {
+    for (size_t artIdx = 0; artIdx < articulations.size(); ++artIdx) {
+        if (checkArticulationFaiseurCollision(articulations[artIdx], artIdx)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Jeu::validateChainCreation(const std::vector<S2d>& newArticulations) const {
+    if (newArticulations.empty()) {
+        return false;
+    }
+    
+    // Validate root placement
+    if (!validateRootPlacement(newArticulations[0])) {
+        return false;
+    }
+    
+    // Validate distances between articulations
+    if (!validateArticulationDistances(newArticulations)) {
+        return false;
+    }
+    
+    // Check for collisions with faiseurs
+    return validateChainCollisions(newArticulations);
+}
+
 void Jeu::removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
                               std::vector<size_t>& entityIndices) {
     // Sort indices in descending order to avoid index shifting issues
@@ -730,25 +786,40 @@ void Jeu::handle_left_click(const S2d& clickPos) {
     // Switch to construction mode
     chaine.set_mode("CONSTRUCTION");
     
+    // Update mouse position
+    mousePosition = clickPos;
+    
+    // Use chain's capture center calculation for visual feedback
+    captureCenter = chaine.calculateCaptureCenter(clickPos, r_max);
+    showCaptureRegion = true;
+    
+    // Attempt particle capture
     tryParticleCapture();
+    
+    // Update visual state
+    if (!chaine.getArticulations().empty()) {
+        finalGoal = chaine.calculateFinalGoal(r_max);
+        showGoal = true;
+    }
 }
 
-bool Jeu::findCaptureCandidate(size_t& particleIndex) {
-    std::vector<size_t> particlesInRange;
+
+bool Jeu::findCaptureCandidate(size_t& particleIndex) const {
+    if (particuleIndices.empty()) {
+        return false;
+    }
+
+    S2d captureCenter = chaine.calculateCaptureCenter(mousePosition, r_max);
+    std::vector<size_t> candidates;
     
-    // Find all particles within capture radius
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
-        Particule* particle = getParticule(i);
-        if (!particle) continue;
-        
-        if (particle->canBeCaptured(captureCenter, r_capture)) {
-            particlesInRange.push_back(i);
+        if (isParticleCapturable(i, captureCenter)) {
+            candidates.push_back(i);
         }
     }
     
-    // Can only capture if exactly one particle is in range
-    if (particlesInRange.size() == 1) {
-        particleIndex = particlesInRange[0];
+    if (candidates.size() == 1) {
+        particleIndex = candidates[0];
         return true;
     }
     
@@ -761,8 +832,6 @@ bool Jeu::tryParticleCapture() {
     }
     
     size_t particleIndex;
-    
-    // Find a particle that can be captured
     if (!findCaptureCandidate(particleIndex)) {
         return false;
     }
@@ -772,22 +841,28 @@ bool Jeu::tryParticleCapture() {
         return false;
     }
     
-    // Create updated chain with new articulation
-    const std::vector<S2d>& articulations = chaine.getArticulations();
-    std::vector<S2d> newArticulations = articulations;
+    // Create new articulation list
+    const std::vector<S2d>& currentArticulations = chaine.getArticulations();
+    std::vector<S2d> newArticulations = currentArticulations;
     newArticulations.push_back(particle->getPosition());
     
-    // Try to create the new chain
-    if (chaine.create_chain(newArticulations.size(), newArticulations, r_max, r_capture) < 0) {
+    // Validate and create chain
+    if (!validateChainCreation(newArticulations)) {
         return false;
     }
     
-    // Remove the captured particle
+    int result = chaine.create_chain(newArticulations.size(), newArticulations, 
+                                   r_max, r_capture);
+    if (result < 0) {
+        return false;
+    }
+    
+    // Remove captured particle
     std::vector<size_t> toRemove = {particleIndex};
     removeMarkedEntities(toRemove, particuleIndices);
     
-    // Update goals if this is the first articulation
-    if (articulations.empty()) {
+    // Update visual feedback for first articulation
+    if (currentArticulations.empty()) {
         finalGoal = chaine.calculateFinalGoal(r_max);
         showGoal = true;
     }
