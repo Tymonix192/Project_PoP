@@ -60,7 +60,7 @@ private:
     bool showGoal;          // Display flag
     
     // Helper methods for entity access
-    Particule* getParticule(size_t index);
+    Particule* getParticule(size_t index) const;
     Faiseur* getFaiseur(size_t index) const;
     std::vector<Faiseur*> getAllFaiseurs();
     
@@ -93,12 +93,18 @@ private:
     void updateChain();
     void applyChainGuidance();
     void checkGameEndConditions();
-    
+    // Particle capture helpers 
+    bool isParticleCapturable(size_t particleIndex, const S2d& captureCenter) const;
+    bool findCaptureCandidate(size_t& particleIndex) const;
+    // Chain validation helpers
+    bool validateRootPlacement(const S2d& root) const;
+    bool validateArticulationDistances(const std::vector<S2d>& articulations) const;
+    bool validateChainCollisions(const std::vector<S2d>& articulations) const;
+    bool validateChainCreation(const std::vector<S2d>& newArticulations) const;
     // Data management
     void clearGameData();
     
     bool tryParticleCapture();
-    bool findCaptureCandidate(size_t& particleIndex);
     bool checkWinCondition();
     void drawGameElements() const;
     void drawCaptureMechanism(const S2d& captureCenter, bool showCaptureRegion) const;
