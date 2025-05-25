@@ -536,50 +536,57 @@ void Jeu::updateParticules() {
     std::vector<size_t> particlesToRemove;
     std::vector<std::unique_ptr<Particule>> newParticles;
     
+    processParticleSplitting(particlesToRemove, newParticles);
+    moveExistingParticles(particlesToRemove);
+    addNewParticles(newParticles);
+    removeMarkedEntities(particlesToRemove, particuleIndices);
+}
+
+void Jeu::processParticleSplitting(std::vector<size_t>& toRemove,
+                    std::vector<std::unique_ptr<Particule>>& newParticles) {
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
         Particule* p = getParticule(i);
         if (!p) continue;
         
-        // Increment counter
         p->incrementCounter();
         
         if (p->shouldSplit()) {
-            if (particuleIndices.size() + newParticles.size() >= nb_particule_max) {
-                // Maximum particles reached - destroy this particle
-                particlesToRemove.push_back(i);
-            } else {
-                // Create two new particles from the split
-                p->createSplitParticles(newParticles);
-                
-                // Mark original particle for removal
-                particlesToRemove.push_back(i);
-            }
+            handleParticleSplit(i, toRemove, newParticles);
         }
     }
-    
-    // Move existing particles
+}
+
+void Jeu::handleParticleSplit(size_t index, std::vector<size_t>& toRemove,
+                std::vector<std::unique_ptr<Particule>>& newParticles) {
+    if (particuleIndices.size() + newParticles.size() >= nb_particule_max) {
+        toRemove.push_back(index);
+    } else {
+        Particule* p = getParticule(index);
+        p->createSplitParticles(newParticles);
+        toRemove.push_back(index);
+    }
+}
+
+void Jeu::moveExistingParticles(const std::vector<size_t>& toSkip) {
     for (size_t i = 0; i < particuleIndices.size(); ++i) {
-        // Skip particles marked for removal
-        if (std::find(particlesToRemove.begin(), 
-        particlesToRemove.end(), i) != particlesToRemove.end()) {
-            continue;
-        }
+        if (shouldSkipParticle(i, toSkip)) continue;
         
         Particule* p = getParticule(i);
         if (p) p->move();
     }
-    
-    // Move and add new particles
-    for (auto& newParticle : newParticles) {
-        newParticle->move(); // Move the new particle
-        
-        // Add to game state
+}
+
+bool Jeu::shouldSkipParticle(size_t index, 
+                            const std::vector<size_t>& toSkip) {
+    return std::find(toSkip.begin(), toSkip.end(), index) != toSkip.end();
+}
+
+void Jeu::addNewParticles(std::vector<std::unique_ptr<Particule>>& newP) {
+    for (auto& particle : newP) {
+        particle->move();
         particuleIndices.push_back(mobiles.size());
-        mobiles.push_back(std::move(newParticle));
+        mobiles.push_back(std::move(particle));
     }
-    
-    // Remove particles marked for deletion
-    removeMarkedEntities(particlesToRemove, particuleIndices);
 }
 
 void Jeu::updateFaiseurs() {
@@ -817,7 +824,7 @@ bool Jeu::findCaptureCandidate(size_t& particleIndex) const {
             candidates.push_back(i);
         }
     }
-    
+
     if (candidates.size() == 1) {
         particleIndex = candidates[0];
         return true;
@@ -883,11 +890,14 @@ bool Jeu::checkWinCondition() {
     // Check if effecteur is within capture radius of goal
     double distanceTogoal = distance(effecteur, goal);
     if (distanceTogoal <= r_capture) {
-        std::string winMessage = std::string("Congratulations! Chaine has reached the goal!\n") +
+        std::string winMessage = 
+        std::string("Congratulations! Chaine has reached the goal!\n") +
         std::string("Final score: ") + std::to_string(score) + std::string("\n") +
-        std::string("Distance between chaine tip and goal: ") + std::to_string(distanceTogoal) +
+        std::string("Distance between chaine tip and goal: ") 
+        + std::to_string(distanceTogoal) +
         std::string("\n") +
-        std::string("Capture radius: ") + std::to_string(r_capture) + std::string("\n");
+        std::string("Capture radius: ") + std::to_string(r_capture) 
+        + std::string("\n");
 
         endGame(WON, winMessage);
         return true;
@@ -928,14 +938,16 @@ void Jeu::drawGameElements() const {
     chaine.draw();
 }
 
-void Jeu::drawCaptureMechanism(const S2d& captureCenter, bool showCaptureRegion) const {
+void Jeu::drawCaptureMechanism(const S2d& captureCenter, 
+    bool showCaptureRegion) const {
     if (showCaptureRegion) {
         Circle captureCircle(captureCenter, r_capture);
         captureCircle.draw_outline(Color::RED);
     }
 }
 
-void Jeu::drawGoals(const S2d& finalGoal, const S2d& intermediateGoal, bool showGoal) const {
+void Jeu::drawGoals(const S2d& finalGoal, const S2d& intermediateGoal, 
+    bool showGoal) const {
     if (showGoal && !chaine.getArticulations().empty()) {
         // Draw final goal as a black point
         Point goalPoint;

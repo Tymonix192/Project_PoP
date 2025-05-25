@@ -211,43 +211,51 @@ void Faiseur::setNumElements(unsigned int nbe) {
 // Calculate positions of all elements
 void Faiseur::calculateElements() {
     elements.clear();
-    elements.push_back(position); // Head element
+    initializeHeadElement();
     
-    // Calculate opposite direction of movement
-    double oppositeAlpha = alpha + M_PI;
-    if (oppositeAlpha > M_PI) {
-        oppositeAlpha -= 2 * M_PI;
+    if (numElements > 1) {
+        generateFollowingElements();
     }
-    
-    Vector prevVector;
+}
+
+void Faiseur::initializeHeadElement() {
+    elements.push_back(position);
+}
+
+void Faiseur::generateFollowingElements() {
+    double currentAlpha = getOppositeAngle();
     S2d prevPos = position;
-    double currentAlpha = oppositeAlpha;
     
-    // Generate positions for all elements after the head
     for (unsigned int i = 1; i < numElements; ++i) {
-        Vector moveVector;
-        moveVector.set_coordinates(prevPos, 
-            {prevPos.x + displacement * cos(currentAlpha), 
-             prevPos.y + displacement * sin(currentAlpha)});
+        S2d nextPos = calculateNextElementPos(prevPos, currentAlpha);
         
-        // Get the end point as the next position
-        S2d nextPos = moveVector.get_end();
-        // Check if the position is inside the arena
+        // Check arena bounds using existing tools
         Circle arenaCircle(ORIGIN, r_max);
         Circle elementCircle(nextPos, radius);
         
         if (!elementCircle.check_inside(arenaCircle)) {
-            Vector toCenter;
-            toCenter.set_coordinates(ORIGIN, prevPos);
+            Vector moveVector;
+            moveVector.set_coordinates(prevPos, nextPos);
             currentAlpha = moveVector.bounce();
-            // Recalculate position with new angle
-            moveVector.set_angle(currentAlpha);
-            nextPos = moveVector.get_end();
+            nextPos = calculateNextElementPos(prevPos, currentAlpha);
         }
         
         elements.push_back(nextPos);
         prevPos = nextPos;
     }
+}
+
+S2d Faiseur::calculateNextElementPos(const S2d& prevPos, double angle) const {
+    return {prevPos.x + displacement * cos(angle), 
+            prevPos.y + displacement * sin(angle)};
+}
+
+double Faiseur::getOppositeAngle() const {
+    double oppositeAlpha = alpha + M_PI;
+    if (oppositeAlpha > M_PI) {
+        oppositeAlpha -= 2 * M_PI;
+    }
+    return oppositeAlpha;
 }
 
 // Implementation of move for faiseurs

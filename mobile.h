@@ -83,6 +83,10 @@ private:
     double radius;
     unsigned int numElements; // Number of elements in the maker
     vector<S2d> elements; // Positions of all elements
+    void initializeHeadElement();
+    void generateFollowingElements();
+    S2d calculateNextElementPos(const S2d& prevPos, double angle) const;
+    double getOppositeAngle() const;
     
 public:
     // Constructors

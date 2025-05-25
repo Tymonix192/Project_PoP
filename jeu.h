@@ -79,11 +79,19 @@ private:
                                    unsigned int& articulationIndex, 
                                    unsigned int totalArticulations,
                                    ReadState& nextState);
-    int handleModeState(const std::string& line, const std::vector<S2d>& articulations, 
-                        int totalArticulations, ReadState& nextState);
+    int handleModeState(const std::string& line, 
+        const std::vector<S2d>& articulations, 
+        int totalArticulations, ReadState& nextState);
                          
     // Update helpers
     void updateParticules();
+    void processParticleSplitting(std::vector<size_t>& toRemove,
+                                 std::vector<std::unique_ptr<Particule>>& newP);
+    void handleParticleSplit(size_t index, std::vector<size_t>& toRemove,
+                            std::vector<std::unique_ptr<Particule>>& newP);
+    void moveExistingParticles(const std::vector<size_t>& toSkip);
+    bool shouldSkipParticle(size_t index, const std::vector<size_t>& toSkip);
+    void addNewParticles(std::vector<std::unique_ptr<Particule>>& newP);
     void updateFaiseurs();
     void removeMarkedEntities(const std::vector<size_t>& indicesToRemove, 
         std::vector<size_t>& entityIndices);
@@ -108,7 +116,8 @@ private:
     bool checkWinCondition();
     void drawGameElements() const;
     void drawCaptureMechanism(const S2d& captureCenter, bool showCaptureRegion) const;
-    void drawGoals(const S2d& finalGoal, const S2d& intermediateGoal, bool showGoal) const;
+    void drawGoals(const S2d& finalGoal, 
+        const S2d& intermediateGoal, bool showGoal) const;
     // Collision detection methods
     bool checkArticulationFaiseurCollision(const S2d& articulation, 
                                          unsigned int articulationIndex) const;
