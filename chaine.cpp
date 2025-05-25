@@ -125,9 +125,9 @@ S2d Chaine::calculateFinalGoal(double arenaRadius) const {
     // Get length of the direction vector
     double length = sqrt(dirX*dirX + dirY*dirY);
     
-    // Handle special case where root is at origin (should never happen, but just in case)
+    // Handle special case where root is at origin 
     if (length < EPSIL_ZERO) {
-        return S2d{arenaRadius, 0}; // Default to point on positive x-axis
+        return S2d{arenaRadius, 0};
     }
     
     // Normalize and scale to arena radius
@@ -137,7 +137,8 @@ S2d Chaine::calculateFinalGoal(double arenaRadius) const {
     return S2d{normalizedX * arenaRadius, normalizedY * arenaRadius};
 }
 
-S2d Chaine::calculateIntermediateGoal(const S2d& mousePos, double captureRadius) const {
+S2d Chaine::calculateIntermediateGoal(const S2d& mousePos, 
+    double captureRadius) const {
     if (articulations.size() < 2) {
         return mousePos;
     }
@@ -166,7 +167,6 @@ std::vector<double> Chaine::calculateSegmentLengths() const {
 
 bool Chaine::checkPositionsInArena(const std::vector<S2d>& positions, 
                                   double arenaRadius) const {
-    // Use Point class and distance_org method
     Point point;
     
     // Check all articulations except root (which is always at the boundary)
@@ -200,7 +200,8 @@ double Chaine::calculateTotalLength() const {
 }
 
 // Helper: Handle unreachable goal case - uses tools functions
-bool Chaine::handleUnreachableGoal(const S2d& goalPos, std::vector<S2d>& newPositions) const {
+bool Chaine::handleUnreachableGoal(const S2d& goalPos, 
+    std::vector<S2d>& newPositions) const {
     S2d direction = calculateDirection(articulations[0], goalPos);
     std::vector<double> lengths = calculateSegmentLengths();
     
@@ -215,7 +216,7 @@ bool Chaine::handleUnreachableGoal(const S2d& goalPos, std::vector<S2d>& newPosi
     return true;
 }
 
-// Helper: Perform backward pass - uses tools functions
+// Helper: Perform backward pass 
 void Chaine::performBackwardPass(const S2d& goalPos, std::vector<S2d>& positions, 
                                 const std::vector<double>& lengths) const {
     positions[positions.size() - 1] = goalPos;
@@ -246,9 +247,9 @@ bool Chaine::hasConverged(const std::vector<S2d>& positions,
     return distToGoal < tolerance;
 }
 
-// Main guidance algorithm - now properly organized
-bool Chaine::applyGuidanceAlgorithm(const S2d& goalPos, std::vector<S2d>& newPositions,
-    double captureRadius) const {
+// Main guidance algorithm 
+bool Chaine::applyGuidanceAlgorithm(const S2d& goalPos, 
+    std::vector<S2d>& newPositions, double captureRadius) const {
     
     if (articulations.size() < 2) {
         return false;
