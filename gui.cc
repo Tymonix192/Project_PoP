@@ -514,7 +514,8 @@ S2d My_window::scaled(S2d const &pos) const {
 }
 
 void My_window::on_drawing_left_click(int n_press, double x, double y) {
-    if (n_press != 1) return;
+    //accepting multile clicks but processing as one
+    if (n_press < 1) return;
     
     // Validate click coordinates
     int width = drawing.get_width();
