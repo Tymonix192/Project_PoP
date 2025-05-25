@@ -278,10 +278,12 @@ void Faiseur::move() {
         // Recalculate position with new angle
         nextPos = calculateNextPosition();
     }
-    
-    // Update position and recalculate elements
-    setPosition(nextPos);
-    calculateElements();
+    // only recalculate elements if position actually changed
+    if (nextPos.x != position.x || nextPos.y != position.y) {
+        //update positions
+        setPosition(nextPos);
+        calculateElements();
+    }
 }
 
 int Faiseur::draw() const {
@@ -334,11 +336,11 @@ bool Faiseur::isValid() const {
 
 // Collision detection
 bool Faiseur::collidesWithPoint(const S2d& point) const {
+    double radiusSquared = radius * radius;  // Calculate once
     for (const S2d& element : elements) {
-        double dist = distance(point, element);
-        
-        // Point is inside element
-        if (dist < radius) {
+        double dx = point.x - element.x;  
+        double dy = point.y - element.y;
+        if (dx*dx + dy*dy < radiusSquared) {  // Use squared distance
             return true;
         }
     }

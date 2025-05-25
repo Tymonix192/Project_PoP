@@ -533,6 +533,8 @@ bool Jeu::update() {
 }
 
 void Jeu::updateParticules() {
+    if (particuleIndices.empty()) return; //skip if no particules
+    
     std::vector<size_t> particlesToRemove;
     std::vector<std::unique_ptr<Particule>> newParticles;
     
@@ -590,6 +592,8 @@ void Jeu::addNewParticles(std::vector<std::unique_ptr<Particule>>& newP) {
 }
 
 void Jeu::updateFaiseurs() {
+    if (faiseurIndices.empty()) return; //skip if no faiseurs
+    
     for (size_t i = 0; i < faiseurIndices.size(); ++i) {
         Faiseur* f = getFaiseur(i);
         if (!f) continue;
